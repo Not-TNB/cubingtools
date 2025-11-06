@@ -9,7 +9,7 @@ MODS     = ["'", '2']
 ALL_MOVS = MOVS + W_MOVS + T_MOVS + ROTS + MIDS
 
 class Move:
-    def __init__(self, width:int=1, mov:str='U', mod:str='1') -> None:
+    def __init__(self, width:int=1, mov:str='U', mod:str='1'):
         '''
         Represents a single move on the cube.
         ### Parameters:
@@ -18,7 +18,6 @@ class Move:
         - `mod`: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
         '''
         def raiseInvalid(): raise ValueError(f'Invalid move: {mov}.')
-        ALL_MOVS = MOVS + W_MOVS + T_MOVS + ROTS + MIDS
 
         if mov in ALL_MOVS: self.mov = mov
         else: raiseInvalid()
@@ -41,11 +40,8 @@ class Move:
         '''Returns the string representation of the move.'''
         return (str(self.width) if self.width>2 else '') + self.mov + (self.mod if self.mod!='1' else '')
 
-    def isspace(self) -> bool: return False
-    def isdigit(self) -> bool: return False
-
 class Algorithm:
-    def __init__(self, movs:list[Move]=[]) -> None:
+    def __init__(self, movs:list[Move]=[]):
         '''
         Represents a sequence of moves (an algorithm) on the cube.
 
@@ -54,7 +50,7 @@ class Algorithm:
         '''
         self.movs = movs
     
-    def __neg__(self):
+    def __neg__(self) -> 'Algorithm':
         '''Returns the inverse of the algorithm.'''
         return Algorithm([-move for move in self.movs[::-1]])
     
@@ -145,6 +141,7 @@ def toAlgo(algStr: str) -> Algorithm:
     tokens = re.findall(r'\d*[A-Za-z]w?[2\']?|\(|\)\d*', algStr)
     
     stk = []
+    print(tokens)
     for t in tokens:
         if t.startswith(')'):
             # how many times to repeat inner alg?
@@ -161,7 +158,9 @@ def toAlgo(algStr: str) -> Algorithm:
             # repeat inner alg and push stk
             innerAlg = Algorithm(inner[::-1])
             stk.extend((innerAlg * mul).movs)
-        else:
+        elif t == '(':
             stk.append(t)
+        else:
+            stk.append(toMove(t))
 
     return Algorithm(stk)

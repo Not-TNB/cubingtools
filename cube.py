@@ -1,7 +1,8 @@
+from algorithm import *
 from functools import wraps
 
 class CubeN:
-    def __init__(self, n:int=3, cols:str='wgrboy') -> None:
+    def __init__(self, n:int=3, cols:str='wgrboy'):
         '''
         Initialize a solved NxN Rubik's Cube, defaulting to the classic 3x3 
         and standard color scheme (white, green, red, blue, orange, yellow).
@@ -117,13 +118,28 @@ class CubeN:
 
         return out
     
-    def uTurn(self) -> None:
-        '''Rotates the top layer (U) of the cube clockwise.'''
+    def uTurn(self, n:int=1) -> 'CubeN':
+        '''
+        Rotates the top `n` layers of the cube clockwise.
+
+        ### Parameters:
+        - `n`: The number of layers to turn along the U face
+
+        Note that `uTurn(1) === "U"` and `uTurn(n>=2) === "nUw"`.
+        Will error if `n>=self.size`
+        '''
+        if n<1 or n>=self.size:
+            raise ValueError(f"n must be stricly 1 or more, and strictly less than self.size (your n={n})")
+
         # Rotate U
         self.state['U'] = self.rotFC('U')
+
         # Apply effects to other layers
-        (self.state['F'][0][:], self.state['R'][0][:], self.state['B'][0][:], self.state['L'][0][:]) = (
-         self.state['R'][0][:], self.state['B'][0][:], self.state['L'][0][:], self.state['F'][0][:])
+        for i in range(n):
+            (self.state['F'][i][:], self.state['R'][i][:], self.state['B'][i][:], self.state['L'][i][:]) = (
+            self.state['R'][i][:], self.state['B'][i][:], self.state['L'][i][:], self.state['F'][i][:])
+        
+        return self
     
     def xRot(self) -> None:
         '''Rotates the entire cube along the x-axis clockwise.'''
@@ -137,3 +153,56 @@ class CubeN:
         '''Rotates the entire cube along the z-axis clockwise.'''
         (self.state['U'], self.state['R'], self.state['L'], self.state['D'], self.state['F'], self.state['B']) = (
          self.rotFC('L'), self.rotFC('U'), self.rotFC('D'), self.rotFC('R'), self.rotFC('F'), self.rotFA('B'))
+
+    def turn(self, move: Move) -> None:
+        '''
+        Executes a given `Move` to the cube's state.
+
+        ### Parameters:
+        - `move`: The `Move` to execute on the cube
+        '''        
+        width, mov, mod = move.width, move.mov, move.mod
+
+        if mod == '\'': 
+            for _ in range(3): self.turn(Move(width, mov, '1'))
+            return
+        if mod == '2': 
+            for _ in range(2): self.turn(Move(width, mov, '1'))
+            return
+        
+        uMov = 'U' if width==1 else f'{width}Uw'
+
+        match mov[0]:
+            case 'x': self.xRot()
+            case 'y': self.yRot()
+            case 'z': self.zRot()      
+            case 'U': self.uTurn(width)
+            case 'D': self.algo(f'x2 {uMov} x2')
+            case 'L': self.algo(f'z {uMov} z\'')      
+            case 'R': self.algo(f'z\' {uMov} z')
+            case 'F': self.algo(f'x {uMov} x\'')
+            case 'B': self.algo(f'x\' {uMov} x')
+
+            # case 'u': self.algo('y D')
+            # case 'd': self.algo('y\' U')
+            # case 'l': self.algo('x\' R')
+            # case 'r': self.algo('x L')
+            # case 'f': self.algo('z B')
+            # case 'b': self.algo('z\' F')
+            # case 'M': self.algo('L\' R x\'')
+            # case 'E': self.algo('U D\' y\'')
+            # case 'S': self.algo('F\' B z')
+
+    def algo(self, alg) -> None:
+        '''
+        Executes a given `Move` or `Algorithm` to the cube's state.
+
+        ### Parameters:
+        - `alg`: The `Move` or `Algorithm` to execute on the cube
+        '''
+        if   isinstance(alg, Move): self.turn(alg)
+        elif isinstance(alg, str): self.algo(toAlgo(alg))
+        elif isinstance(alg, Algorithm): 
+            for m in alg.movs: self.turn(m)
+        else:
+            raise TypeError(f"Cannot execute the type {type(alg)} on a cube.")
