@@ -137,6 +137,3 @@ class CubeN:
         '''Rotates the entire cube along the z-axis clockwise.'''
         (self.state['U'], self.state['R'], self.state['L'], self.state['D'], self.state['F'], self.state['B']) = (
          self.rotFC('L'), self.rotFC('U'), self.rotFC('D'), self.rotFC('R'), self.rotFC('F'), self.rotFA('B'))
-
-cube = CubeN(10)
-print(cube)
