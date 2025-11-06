@@ -141,7 +141,6 @@ def toAlgo(algStr: str) -> Algorithm:
     tokens = re.findall(r'\d*[A-Za-z]w?[2\']?|\(|\)\d*', algStr)
     
     stk = []
-    print(tokens)
     for t in tokens:
         if t.startswith(')'):
             # how many times to repeat inner alg?

@@ -177,21 +177,22 @@ class CubeN:
             case 'y': self.yRot()
             case 'z': self.zRot()      
             case 'U': self.uTurn(width)
+
             case 'D': self.algo(f'x2 {uMov} x2')
             case 'L': self.algo(f'z {uMov} z\'')      
             case 'R': self.algo(f'z\' {uMov} z')
             case 'F': self.algo(f'x {uMov} x\'')
             case 'B': self.algo(f'x\' {uMov} x')
+            case 'M': self.algo('L\' R x\'')
+            case 'E': self.algo('U D\' y\'')
+            case 'S': self.algo('F\' B z')
 
-            # case 'u': self.algo('y D')
-            # case 'd': self.algo('y\' U')
-            # case 'l': self.algo('x\' R')
-            # case 'r': self.algo('x L')
-            # case 'f': self.algo('z B')
-            # case 'b': self.algo('z\' F')
-            # case 'M': self.algo('L\' R x\'')
-            # case 'E': self.algo('U D\' y\'')
-            # case 'S': self.algo('F\' B z')
+            case 'u': self.algo('y D')
+            case 'd': self.algo('y\' U')
+            case 'l': self.algo('x\' R')
+            case 'r': self.algo('x L')
+            case 'f': self.algo('z B')
+            case 'b': self.algo('z\' F')
 
     def algo(self, alg) -> None:
         '''
