@@ -56,6 +56,9 @@ class CubeN:
 
         ### Parameters:
         - `face`: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+
+        ### Returns:
+        - The rotated face as a 2D list.
         ''' 
         return list(list(x) for x in zip(*self.state[face]))[::-1]
     @validateFace
@@ -65,6 +68,9 @@ class CubeN:
 
         ### Parameters:
         - `face`: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+
+        ### Returns:
+        - The rotated face as a 2D list.
         '''
         return [row[::-1] for row in self.state[face][::-1]]
     
@@ -75,6 +81,9 @@ class CubeN:
 
         ### Parameters:
         - `face`: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to print.
+
+        ### Returns:
+        - A string representation of the specified face.
         '''
         out  = '┌' + '──'*(self.size-1) + '───┐\n'
         out += '\n'.join(['│ ' + ' '.join(row) + ' │' for row in self.state[face]])
@@ -129,5 +138,5 @@ class CubeN:
         (self.state['U'], self.state['R'], self.state['L'], self.state['D'], self.state['F'], self.state['B']) = (
          self.rotFC('L'), self.rotFC('U'), self.rotFC('D'), self.rotFC('R'), self.rotFC('F'), self.rotFA('B'))
 
-cube = CubeN(3)
+cube = CubeN(10)
 print(cube)

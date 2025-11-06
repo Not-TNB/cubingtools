@@ -1,0 +1,142 @@
+MOVS  = ['U', 'F', 'R', 'B', 'L', 'D']
+W_MOVS = [x+'w' for x in MOVS]
+T_MOVS = [x.lower() for x in MOVS]
+ROTS  = ['x', 'y', 'z']
+MIDS  = ['M', 'E', 'S']
+MODS  = ["'", '2']
+allMOVS = MOVS + W_MOVS + T_MOVS + ROTS + MIDS
+
+class Move:
+    def __init__(self, width:int=1, mov:str='U', mod:str='1') -> None:
+        '''
+        Represents a single move on the cube.
+        ### Parameters:
+        - `width`: The number of layers to turn (default is 1).
+        - `mov`: The move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
+        - `mod`: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
+        '''
+        def raiseInvalid(): raise ValueError(f'Invalid move: {mov}.')
+        allMOVS = MOVS + W_MOVS + T_MOVS + ROTS + MIDS
+
+        if mov in allMOVS: self.mov = mov
+        else: raiseInvalid()
+
+        self.width = 1
+        if mov in W_MOVS:
+            if width > 1: self.width = width
+            else: raiseInvalid()
+
+        if mod in ['1']+MODS: self.mod = mod
+        else: raiseInvalid()
+    
+    def __neg__(self) -> 'Move':
+        '''Returns the inverse of the move.'''
+        if self.mod == '2': return self
+        if self.mod == '1': return Move(self.width, self.mov, "'")
+        if self.mod == "'": return Move(self.width, self.mov, '1')
+    
+    def __str__(self) -> str:
+        '''Returns the string representation of the move.'''
+        return (str(self.width) if self.width>2 else '') + self.mov + (self.mod if self.mod!='1' else '')
+
+class Algorithm:
+    def __init__(self, MOVS:list[Move]=[Move(1,'U','1')]) -> None:
+        '''
+        Represents a sequence of moves (an algorithm) on the cube.
+
+        ### Parameters:
+        - `MOVS`: A list of Move objects representing the sequence of moves.
+        '''
+        self.MOVS = MOVS
+    
+    def __neg__(self):
+        '''Returns the inverse of the algorithm.'''
+        return Algorithm([-move for move in self.MOVS[::-1]])
+    
+    def __str__(self) -> str:
+        '''Returns the string representation of the algorithm.'''
+        return ' '.join([str(move) for move in self.MOVS])
+
+    def __add__(self, other) -> 'Algorithm':
+        '''Concatenates two algorithms. Accepts addition of an algorithm with one of the following types: Move, Algorithm, String.'''
+        if isinstance(other, Move)     : return Algorithm(self.MOVS + [other])
+        if isinstance(other, str)      : return Algorithm(self.MOVS + toAlgo(other).MOVS)
+        if isinstance(other, Algorithm): return Algorithm(self.MOVS + other.MOVS)
+        raise TypeError(f'Cannot add Algorithm with type {type(other)}.')
+    
+    def __mul__(self, times:int) -> 'Algorithm':
+        '''Repeats the algorithm a specified number of times.'''
+        if times < 1: raise ValueError("Times must be a positive integer.")
+        return Algorithm(self.MOVS * times)
+
+
+################################################################################################
+
+def toMove(token: str) -> Move:
+    '''
+    Converts a string token into a Move.
+    ### Parameters:
+    - `token`: The string representation of the move (e.g., U, R2, 3Fw', etc.).
+    ### Returns:
+    - A Move object corresponding to the token.
+    '''
+    MOVS  = ['U', 'F', 'R', 'B', 'L', 'D']
+    W_MOVS = [x+'w' for x in MOVS]
+    T_MOVS = [x.lower() for x in MOVS]
+    ROTS  = ['x', 'y', 'z']
+    MIDS  = ['M', 'E', 'S']
+    MODS  = ["'", '2']
+    allMOVS = MOVS + W_MOVS + T_MOVS + ROTS + MIDS
+
+    def raiseInvalid(): raise ValueError(f'Invalid move token: {token}')
+    
+    match len(token):
+        case 1:
+            # Only case: it is exactly one of the base moves
+            if token in allMOVS: return Move(1, token, '1')
+            # Invalid!
+            else: raiseInvalid()
+
+        case 2:
+            # Case 1: 1-base move with modifier
+            if token[0] in allMOVS and token[1] in MODS:
+                return Move(1, token[0], token[1])
+            # Case 2: wide move without modifier
+            elif token in W_MOVS:
+                return Move(2, token, '1')
+            # Invalid!
+            else: raiseInvalid()
+        
+        case 3:
+            # Case 1: wide move with modifier
+            if (wMov:=token[:2]) in W_MOVS and (mod:=token[2]) in MODS:
+                return Move(2, wMov, mod)
+            # Case 2: wide move with width
+            elif (w:=token[0]).isdigit() and (wMov:=token[1:]) in W_MOVS:
+                if (width:=int(w)) >= 2: return Move(width, wMov, '1')
+                else: raiseInvalid()
+            # Invalid!
+            else: raiseInvalid()
+        
+        case 4:
+            # Only case: wide move with width and modifier
+            w = token[0]
+            wMov = token[1:3]
+            mod = token[3]
+            if not w.isdigit(): raiseInvalid()
+            if (width:=int(w)) < 2: raiseInvalid()
+            if wMov not in W_MOVS: raiseInvalid()
+            if mod not in MODS: raiseInvalid()
+            return Move(width, wMov, mod)
+
+def toAlgo(algStr: str) -> Algorithm:
+    '''
+    Converts a string representation of an algorithm into an Algorithm.
+
+    ### Parameters:
+    - `algStr`: The string representation of the algorithm (e.g., "U R2 F' L D B").
+
+    ### Returns:
+    - An Algorithm object corresponding to the input string.
+    '''
+    return Algorithm([toMove(t) for t in algStr.split()])
