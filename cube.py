@@ -226,3 +226,12 @@ class CubeN:
         '''
         self.algo(alg)
         return self
+    
+    def isSolved(self) -> bool:
+        '''
+        Returns `True` if the cube is in a solved state, and `False` otherwise.
+        '''
+        def isConst(mat):
+            v = mat[0][0]
+            return not any(x != v for row in mat for x in row)
+        return all(map(isConst, self.state.values()))
