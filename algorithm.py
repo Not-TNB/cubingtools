@@ -1,7 +1,7 @@
 import re
 
 MOVS     = ['U', 'F', 'R', 'B', 'L', 'D']
-W_MOVS   = [x+'w' for x in MOVS]
+W_MOVS   = [[x,'w'] for x in MOVS]
 T_MOVS   = [x.lower() for x in MOVS]
 ROTS     = ['x', 'y', 'z']
 MIDS     = ['M', 'E', 'S']
@@ -74,20 +74,22 @@ class Algorithm:
 
 ################################################################################################
 
-def toMove(token: str) -> Move:
+def toMove(tok: str) -> Move:
     '''
     Converts a string token into a Move.
     ### Parameters:
-    - `token`: The string representation of the move (e.g., U, R2, 3Fw', etc.).
+    - `tok`: The string representation of the move (e.g., U, R2, 3Fw', etc.).
     ### Returns:
     - A `Move` object corresponding to the token.
     '''
-    def raiseInvalid(): raise ValueError(f'Invalid move token: {token}')
+    def raiseInvalid(): raise ValueError(f'Invalid move token: {tok}')
+
+    token = [t for t in re.findall(r'\d*|[A-Za-z]|w?|[2\']?', tok) if t != '']
     
     match len(token):
         case 1:
             # Only case: it is exactly one of the base moves
-            if token in ALL_MOVS: return Move(1, token, '1')
+            if (t:=token[0]) in ALL_MOVS: return Move(1, t, '1')
             # Invalid!
             else: raiseInvalid()
 

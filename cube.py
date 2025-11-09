@@ -4,14 +4,17 @@ from functools import wraps
 class CubeN:
     def __init__(self, n:int=3, cols:str='wgrboy'):
         '''
-        Initialize a solved NxN Rubik's Cube, defaulting to the classic 3x3 
+        Initialize a solved NxNxN Rubik's Cube, defaulting to the classic 3x3 
         and standard color scheme (white, green, red, blue, orange, yellow).
 
         ### Parameters:
         - `n`: Size of the cube (n x n x n)
         - `cols`: Symbol (color) on each face of the cube (In the order UFRBLD)
+
+        >>> myCube  = CubeN()                   # 3x3 cube with standard color scheme
+        >>> revenge = CubeN(n=4, cols='abcdef') # 4x4 cube with custom color scheme
         '''
-        if n < 1              : raise ValueError("Cube size must be at least 1")
+        if n <= 1             : raise ValueError("Cube size must be at least 2")
         if len(cols) != 6     : raise ValueError("There must be exactly 6 colors for the cube faces")
         if len(set(cols)) != 6: raise ValueError("Colors for the cube faces must be unique")
 
@@ -92,7 +95,7 @@ class CubeN:
 
         return out
         
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         '''Print's a net of the cube's current state.'''
         space = ' '*(2*self.size+2)
         bordr = '─'*(2*self.size+1)
@@ -117,6 +120,10 @@ class CubeN:
         out += space + '└' + bordr + '┘'
 
         return out
+    
+    def __str__(self) -> str:
+        '''Print's a net of the cube's current state.'''
+        return self.__repr__()
     
     def uTurn(self, n:int=1) -> 'CubeN':
         '''
@@ -159,7 +166,7 @@ class CubeN:
         Executes a given `Move` to the cube's state.
 
         ### Parameters:
-        - `move`: The `Move` to execute on the cube
+        - `move`: The `Move` to execute on the cube.
         '''        
         width, mov, mod = move.width, move.mov, move.mod
 
@@ -199,7 +206,10 @@ class CubeN:
         Executes a given `Move` or `Algorithm` to the cube's state.
 
         ### Parameters:
-        - `alg`: The `Move` or `Algorithm` to execute on the cube
+        - `alg`: The `Move` or `Algorithm` to execute on the cube.
+
+        >>> myCube = CubeN(3) ; alg1 = "R U R' U'"
+        >>> myCube.algo(alg1)
         '''
         if   isinstance(alg, Move): self.turn(alg)
         elif isinstance(alg, str): self.algo(toAlgo(alg))
@@ -207,3 +217,12 @@ class CubeN:
             for m in alg.movs: self.turn(m)
         else:
             raise TypeError(f"Cannot execute the type {type(alg)} on a cube.")
+    def __rshift__(self, alg) -> 'CubeN': 
+        '''
+        Same as `algo`, but also returns the cube (good for chaining algorithms).
+
+        >>> myCube = CubeN(3) ; alg1 = "R U R' U'" ; alg2 = "F2 B2"
+        >>> myCube >> alg1 >> alg2
+        '''
+        self.algo(alg)
+        return self
