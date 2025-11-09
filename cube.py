@@ -1,5 +1,6 @@
 from algorithm import *
 from functools import wraps
+import random
 
 class CubeN:
     def __init__(self, n:int=3, cols:str='wgrboy'):
@@ -100,27 +101,28 @@ class CubeN:
         space = ' '*(2*self.size+2)
         bordr = '─'*(2*self.size+1)
 
-        # print B face
+        # print U face
         out = space + '┌' + bordr + '┐\n'
-        for row in self.rotF2('B'):
+        for row in self.state['U']:
             out += space + '│ ' + ' '.join(row) + ' │\n'
 
-        # print L, U, R, D faces
-        zipFaces = zip(self.rotFC('L'), self.state['U'], self.rotFA('R'), self.rotF2('D'))
+        # print LFRD faces
+        zipFaces = zip(self.state['L'], self.state['F'], self.state['R'], self.state['B'])
         out += '┌' + bordr + '┼' + bordr + '┼' + bordr + '┬' + bordr + '┐\n'
         for l,u,r,d in zipFaces:
             out += '│ ' + ' '.join(l) + ' │ ' + ' '.join(u) + ' │ ' + ' '.join(r) + ' │ ' + ' '.join(d) + ' │\n'
         out += '└' + bordr + '┼' + bordr + '┼' + bordr + '┴' + bordr + '┘\n'
 
-        # print F face
+        # print D face
         space = ' '*(2*self.size+2)
         bordr = '─'*(2*self.size+1)
-        for row in self.state['F']:
+        for row in self.state['D']:
             out += space + '│ ' + ' '.join(row) + ' │\n'
         out += space + '└' + bordr + '┘'
 
         return out
     
+    # TODO
     def __str__(self) -> str:
         '''Print's a net of the cube's current state.'''
         return self.__repr__()
@@ -235,3 +237,19 @@ class CubeN:
             v = mat[0][0]
             return not any(x != v for row in mat for x in row)
         return all(map(isConst, self.state.values()))
+    
+    def reset(self):
+        '''
+        Resets the cube to its initial state.
+        '''
+        self.pos = self.solved
+
+    # TODO
+    def scramble(self, n: int):
+        '''
+        Scrambles the cube with randomized moves.
+        
+        ### Parameters:
+        - `n`: The number of moves used to scramble the cube.
+        '''
+        pass
