@@ -10,9 +10,8 @@ class CubeN:
         Initialize a solved NxNxN Rubik's Cube, defaulting to the classic 3x3 
         and standard color scheme (white, green, red, blue, orange, yellow).
 
-        ### Parameters:
-        - `n`: Size of the cube (n x n x n)
-        - `cols`: Symbol (color) on each face of the cube (In the order UFRBLD)
+        :param n: Size of the cube (n x n x n)
+        :param cols: Symbol (color) on each face of the cube (In the order UFRBLD)
 
         >>> myCube  = CubeN()                   # 3x3 cube with standard color scheme
         >>> revenge = CubeN(n=4, cols='abcdef') # 4x4 cube with custom color scheme
@@ -60,8 +59,10 @@ class CubeN:
         '''
         Returns the clockwise roation of a single face.
 
-        ### Parameters:
-        - `face`: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+
+        :rtype: [[str]]
+        :returns: The rotated face as a 2D list.
         '''
         return [list(row) for row in zip(*self.state[face][::-1])]
     @validateFace
@@ -69,11 +70,10 @@ class CubeN:
         '''
         Returns the anti-clockwise roation of a single face.
 
-        ### Parameters:
-        - `face`: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
 
-        ### Returns:
-        - The rotated face as a 2D list.
+        :rtype: [[str]]
+        :returns: The rotated face as a 2D list.
         ''' 
         return list(list(x) for x in zip(*self.state[face]))[::-1]
     @validateFace
@@ -81,11 +81,10 @@ class CubeN:
         '''
         Returns the 180 degree roation of a single face.
 
-        ### Parameters:
-        - `face`: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
 
-        ### Returns:
-        - The rotated face as a 2D list.
+        :rtype: [[str]]
+        :returns: The rotated face as a 2D list.
         '''
         return [row[::-1] for row in self.state[face][::-1]]
     
@@ -94,11 +93,10 @@ class CubeN:
         '''
         Print a single face of the cube.
 
-        ### Parameters:
-        - `face`: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to print.
+        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
 
-        ### Returns:
-        - A string representation of the specified face.
+        :rtype: str
+        :returns: A string representation of the specified face.
         '''
         out  = '┌' + '──'*(self.size-1) + '───┐\n'
         out += '\n'.join(['│ ' + ' '.join(row) + ' │' for row in self.state[face]])
@@ -141,11 +139,16 @@ class CubeN:
         '''
         Rotates the top `n` layers of the cube clockwise.
 
-        ### Parameters:
-        - `n`: The number of layers to turn along the U face
+        :param n: The number of layers to turn along the U face
 
-        Note that `uTurn(1) === "U"` and `uTurn(n>=2) === "nUw"`.
-        Will error if `n>=self.size`
+        :rtype: CubeN
+        :returns: Itself, after the U turn
+
+        :raises ValueError: If ``n >= self.size``.
+
+        .. Notes::
+        ``uTurn(1)`` is equivalent to the move ``U``,
+        and ``uTurn(n >= 2)`` is equivalent to ``nUw``.
         '''
         if n<1 or n>=self.size:
             raise ValueError(f"n must be stricly 1 or more, and strictly less than self.size (your n={n})")
@@ -177,8 +180,7 @@ class CubeN:
         '''
         Executes a given `Move` to the cube's state.
 
-        ### Parameters:
-        - `move`: The `Move` to execute on the cube.
+        :param move: The `Move` to execute on the cube.
         '''        
         width, mov, mod = move.width, move.mov, move.mod
 
@@ -217,8 +219,7 @@ class CubeN:
         '''
         Executes a given `Move` or `Algorithm` to the cube's state.
 
-        ### Parameters:
-        - `alg`: The `Move` or `Algorithm` to execute on the cube.
+        :param alg: The `Move` or `Algorithm` to execute on the cube.
 
         >>> myCube = CubeN(3) ; alg1 = "R U R' U'"
         >>> myCube.algo(alg1)
@@ -233,6 +234,8 @@ class CubeN:
         '''
         Same as `algo`, but also returns the cube (good for chaining algorithms).
 
+        :param alg: The `Move` or `Algorithm` to execute on the cube.
+
         >>> myCube = CubeN(3) ; alg1 = "R U R' U'" ; alg2 = "F2 B2"
         >>> myCube >> alg1 >> alg2
         '''
@@ -240,42 +243,33 @@ class CubeN:
         return self
     
     def isSolved(self) -> bool:
-        '''
-        Returns `True` if the cube is in a solved state, and `False` otherwise.
-        '''
+        '''Returns `True` if the cube is in a solved state, and `False` otherwise.'''
         def isConst(mat):
             v = mat[0][0]
             return not any(x != v for row in mat for x in row)
         return all(map(isConst, self.state.values()))
     
     def reset(self):
-        '''
-        Resets the cube to its initial state.
-        '''
+        '''Resets the cube to its initial state.'''
         self.pos = self.solved
 
     def randMove(self):
-        '''
-        Returns a random WCA-type move.
-        '''
-        return random.choice(self.ms)
+        '''Returns a random WCA-type move.'''
+        mod = random.choice(MODS)
+        mv = toAlgo(random.choice(self.ms+mod))
+        return mv
 
-    # TODO
     def scramble(self, m: int):
         '''
         Scrambles the cube with randomized moves.
         
-        ### Parameters:
-        - `m`: The number of moves used to scramble the cube.
+        :param m: The number of moves used to scramble the cube.
         '''
         states = [deepcopy(self.state)]
         algo = Algorithm()
         while len(algo)<m:
-            mod = random.choice(MODS)
-            mv = toAlgo(random.choice(self.ms)+mod)
-
+            mv = self.randMove()
             self.algo(mv)
-
             if self.state in states: 
                 self.algo(-mv)
                 continue

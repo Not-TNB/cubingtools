@@ -158,7 +158,6 @@ def toAlgo(algStr: str) -> Algorithm:
         elif t == '(':
             stk.append(t)
         else:
-            print(t)
             stk.append(toMove(t))
 
     return Algorithm(stk)
