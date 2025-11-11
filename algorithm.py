@@ -5,10 +5,10 @@ class Move:
     def __init__(self, width:int=1, mov:str='U', mod:str='1'):
         '''
         Represents a single move on the cube.
-        ### Parameters:
-        - `width`: The number of layers to turn (default is 1).
-        - `mov`: The move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
-        - `mod`: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
+        
+        :param width: The number of layers to turn (default is 1).
+        :param mov: The move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
+        :param mod: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
         '''
         def raiseInvalid(): raise ValueError(f'Invalid move: {mov}.')
 
@@ -38,8 +38,7 @@ class Algorithm:
         '''
         Represents a sequence of moves (an algorithm) on the cube.
 
-        ### Parameters:
-        - `movs`: A list of `Move` objects representing the sequence of moves.
+        :param movs: A list of `Move` objects representing the sequence of moves.
         '''
         self.movs = movs
     
@@ -74,10 +73,11 @@ class Algorithm:
 def toMove(tok: str) -> Move:
     '''
     Converts a string token into a Move.
-    ### Parameters:
-    - `tok`: The string representation of the move (e.g., U, R2, 3Fw', etc.).
-    ### Returns:
-    - A `Move` object corresponding to the token.
+
+    :param tok: The string representation of the move (e.g., U, R2, 3Fw', etc.).
+
+    :rtype: Move
+    :returns: A `Move` object corresponding to the token.
     '''
     def raiseInvalid(): raise ValueError(f'Invalid move token: {tok}')
 
@@ -127,12 +127,12 @@ def toAlgo(algStr: str) -> Algorithm:
     '''
     Converts a string representation of an algorithm into an Algorithm object. 
     
-    ### Parameters:
-    - `algStr`: The string representation of the algorithm 
-      (e.g., "U R2 F' 3Rw2 (R U')3 D").
-    
-    ### Returns:
-    - An `Algorithm` object corresponding to the input string.
+    :param algStr: The string representation of the algorithm.
+
+    :rtype: Algorithm
+    :returns: An `Algorithm` object corresponding to the input string.
+
+    >>> toAlgo("U R2 F' 3Rw2 (R U')3 D") -> Algorithm(...)
     '''
     # split on (optional digits)(one A-Za-z)(optional w)(optional 2 or ')
     #       or (left bracket "(")

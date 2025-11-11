@@ -237,7 +237,7 @@ class CubeN:
         :param alg: The `Move` or `Algorithm` to execute on the cube.
 
         >>> myCube = CubeN(3) ; alg1 = "R U R' U'" ; alg2 = "F2 B2"
-        >>> myCube >> alg1 >> alg2
+        >>> myCube >> alg1 >> alg2 -> Cube(...)
         '''
         self.algo(alg)
         return self
