@@ -1,6 +1,8 @@
 from algorithm import *
+from constants import *
 from functools import wraps
 import random
+from copy import deepcopy
 
 class CubeN:
     def __init__(self, n:int=3, cols:str='wgrboy'):
@@ -20,8 +22,16 @@ class CubeN:
         if len(set(cols)) != 6: raise ValueError("Colors for the cube faces must be unique")
 
         self.size = n
-        self.area = n * n
         self.cols = cols
+
+        # Generate WCA-type move list
+        match n:
+            case 2: self.ms = ['R', 'U', 'F'] # same as MOVS[:3]
+            case 3: self.ms = MOVS
+            case _: 
+                self.ms = MOVS
+                for i in range(2,1+n//2):
+                    self.ms += [str(i)+m for m in W_MOVS_1]
 
         # Generate solved and initial state
         def genFaceMat(col:str) -> list[list[str]]:
@@ -244,12 +254,31 @@ class CubeN:
         '''
         self.pos = self.solved
 
+    def randMove(self):
+        '''
+        Returns a random WCA-type move.
+        '''
+        return random.choice(self.ms)
+
     # TODO
-    def scramble(self, n: int):
+    def scramble(self, m: int):
         '''
         Scrambles the cube with randomized moves.
         
         ### Parameters:
-        - `n`: The number of moves used to scramble the cube.
+        - `m`: The number of moves used to scramble the cube.
         '''
-        pass
+        states = [deepcopy(self.state)]
+        algo = Algorithm()
+        while len(algo)<m:
+            mod = random.choice(MODS)
+            mv = toAlgo(random.choice(self.ms)+mod)
+
+            self.algo(mv)
+
+            if self.state in states: 
+                self.algo(-mv)
+                continue
+            states.append(deepcopy(self.state))
+            algo += mv
+        return algo

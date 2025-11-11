@@ -1,12 +1,5 @@
 import re
-
-MOVS     = ['U', 'F', 'R', 'B', 'L', 'D']
-W_MOVS   = [[x,'w'] for x in MOVS]
-T_MOVS   = [x.lower() for x in MOVS]
-ROTS     = ['x', 'y', 'z']
-MIDS     = ['M', 'E', 'S']
-MODS     = ["'", '2']
-ALL_MOVS = MOVS + W_MOVS + T_MOVS + ROTS + MIDS
+from constants import *
 
 class Move:
     def __init__(self, width:int=1, mov:str='U', mod:str='1'):
@@ -23,7 +16,7 @@ class Move:
         else: raiseInvalid()
 
         self.width = 1
-        if mov in W_MOVS:
+        if mov in W_MOVS_1:
             if width > 1: self.width = width
             else: raiseInvalid()
 
@@ -70,6 +63,10 @@ class Algorithm:
         '''Repeats the algorithm a specified number of times.'''
         if times < 1: raise ValueError("Times must be a positive integer.")
         return Algorithm(self.movs * times)
+    
+    def __len__(self) -> int: 
+        '''Returns the number of moves making up the algorithm.'''
+        return len(self.movs)
 
 
 ################################################################################################
@@ -99,17 +96,17 @@ def toMove(tok: str) -> Move:
                 return Move(1, mov, mod)
             # Case 2: wide move without modifier
             elif token in W_MOVS:
-                return Move(2, token, '1')
+                return Move(2, ''.join(token), '1')
             # Invalid!
             else: raiseInvalid()
         
         case 3:
             # Case 1: wide move with modifier
             if (wMov:=token[:2]) in W_MOVS and (mod:=token[2]) in MODS:
-                return Move(2, wMov, mod)
+                return Move(2, ''.join(wMov), mod)
             # Case 2: wide move with width
             elif (w:=token[0]).isdigit() and (wMov:=token[1:]) in W_MOVS:
-                if (width:=int(w)) >= 2: return Move(width, wMov, '1')
+                if (width:=int(w)) >= 2: return Move(width, ''.join(wMov), '1')
                 else: raiseInvalid()
             # Invalid!
             else: raiseInvalid()
@@ -123,7 +120,7 @@ def toMove(tok: str) -> Move:
             if (width:=int(w)) < 2: raiseInvalid()
             if wMov not in W_MOVS: raiseInvalid()
             if mod not in MODS: raiseInvalid()
-            return Move(width, wMov, mod)
+            return Move(width, ''.join(wMov), mod)
 
 
 def toAlgo(algStr: str) -> Algorithm:
@@ -141,7 +138,6 @@ def toAlgo(algStr: str) -> Algorithm:
     #       or (left bracket "(")
     #       or (right bracket ")")(optional digits)
     tokens = re.findall(r'\d*[A-Za-z]w?[2\']?|\(|\)\d*', algStr)
-    
     stk = []
     for t in tokens:
         if t.startswith(')'):
@@ -162,6 +158,7 @@ def toAlgo(algStr: str) -> Algorithm:
         elif t == '(':
             stk.append(t)
         else:
+            print(t)
             stk.append(toMove(t))
 
     return Algorithm(stk)
