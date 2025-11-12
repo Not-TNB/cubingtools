@@ -5,7 +5,7 @@ class Move:
     def __init__(self, width:int=1, mov:str='U', mod:str='1'):
         '''
         Represents a single move on the cube.
-        
+
         :param width: The number of layers to turn (default is 1).
         :param mov: The move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
         :param mod: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
@@ -16,12 +16,15 @@ class Move:
         else: raiseInvalid()
 
         self.width = 1
-        if mov in W_MOVS_1:
+        if mov in W_MOVS:
             if width > 1: self.width = width
             else: raiseInvalid()
 
         if mod in ['1']+MODS: self.mod = mod
         else: raiseInvalid()
+    
+    def __repr__(self):
+        return f"Move(width={self.width}, mov='{self.mov}', mod='{self.mod}')"
     
     def __neg__(self) -> 'Move':
         '''Returns the inverse of the move.'''
@@ -34,17 +37,20 @@ class Move:
         return (str(self.width) if self.width>2 else '') + self.mov + (self.mod if self.mod!='1' else '')
 
 class Algorithm:
-    def __init__(self, movs:list[Move]=[]):
+    def __init__(self, movs: list[Move] | None = None):
         '''
         Represents a sequence of moves (an algorithm) on the cube.
 
         :param movs: A list of `Move` objects representing the sequence of moves.
         '''
-        self.movs = movs
+        self.movs = movs or None
     
-    def __neg__(self) -> 'Algorithm':
+    def inverse(self) -> 'Algorithm':
         '''Returns the inverse of the algorithm.'''
         return Algorithm([-move for move in self.movs[::-1]])
+    def __neg__(self) -> 'Algorithm':
+        '''Returns the inverse of the algorithm.'''
+        return self.inverse()
     
     def __str__(self) -> str:
         '''Returns the string representation of the algorithm.'''
@@ -55,7 +61,7 @@ class Algorithm:
         if isinstance(other, Move)      : return Algorithm(self.movs + [other])
         if isinstance(other, str)       : return Algorithm(self.movs + toAlgo(other).movs)
         if isinstance(other, Algorithm) : return Algorithm(self.movs + other.movs)
-        if isinstance(other, list[Move]): return Algorithm(self.movs + other)
+        if isinstance(other, list)      : return Algorithm(self.movs + other)
         raise TypeError(f'Cannot add Algorithm with type {type(other)}.')
     
     def __mul__(self, times:int) -> 'Algorithm':
@@ -66,7 +72,6 @@ class Algorithm:
     def __len__(self) -> int: 
         '''Returns the number of moves making up the algorithm.'''
         return len(self.movs)
-
 
 ################################################################################################
 
@@ -95,18 +100,18 @@ def toMove(tok: str) -> Move:
             if (mov:=token[0]) in ALL_MOVS and (mod:=token[1]) in MODS:
                 return Move(1, mov, mod)
             # Case 2: wide move without modifier
-            elif token in W_MOVS:
-                return Move(2, ''.join(token), '1')
+            elif (token1:=''.join(token)) in W_MOVS:
+                return Move(2, token1, '1')
             # Invalid!
             else: raiseInvalid()
         
         case 3:
             # Case 1: wide move with modifier
-            if (wMov:=token[:2]) in W_MOVS and (mod:=token[2]) in MODS:
-                return Move(2, ''.join(wMov), mod)
+            if (wMov:=''.join(token[:2])) in W_MOVS and (mod:=token[2]) in MODS:
+                return Move(2, wMov, mod)
             # Case 2: wide move with width
-            elif (w:=token[0]).isdigit() and (wMov:=token[1:]) in W_MOVS:
-                if (width:=int(w)) >= 2: return Move(width, ''.join(wMov), '1')
+            elif (w:=token[0]).isdigit() and (wMov:=''.join(token[1:])) in W_MOVS:
+                if (width:=int(w)) >= 2: return Move(width, wMov, '1')
                 else: raiseInvalid()
             # Invalid!
             else: raiseInvalid()
@@ -114,13 +119,13 @@ def toMove(tok: str) -> Move:
         case 4:
             # Only case: wide move with width and modifier
             w = token[0]
-            wMov = token[1:3]
+            wMov = ''.join(token[1:3])
             mod = token[3]
             if not w.isdigit(): raiseInvalid()
             if (width:=int(w)) < 2: raiseInvalid()
             if wMov not in W_MOVS: raiseInvalid()
             if mod not in MODS: raiseInvalid()
-            return Move(width, ''.join(wMov), mod)
+            return Move(width, wMov, mod)
 
 
 def toAlgo(algStr: str) -> Algorithm:
@@ -160,4 +165,6 @@ def toAlgo(algStr: str) -> Algorithm:
         else:
             stk.append(toMove(t))
 
+    if '(' in stk:
+        raise ValueError("Unmatched '(' in algorithm string.")
     return Algorithm(stk)

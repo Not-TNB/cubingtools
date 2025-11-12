@@ -30,7 +30,7 @@ class CubeN:
             case _: 
                 self.ms = MOVS
                 for i in range(2,1+n//2):
-                    self.ms += [str(i)+m for m in W_MOVS_1]
+                    self.ms += [str(i)+m for m in W_MOVS]
 
         # Generate solved and initial state
         def genFaceMat(col:str) -> list[list[str]]:
@@ -38,7 +38,9 @@ class CubeN:
             return [[col for _ in range(self.size)] for _ in range(self.size)]
         stateKs = 'UFRBLD'
         stateVs = list(map(genFaceMat, self.cols))
-        self.state = self.solved = dict(zip(stateKs, stateVs))
+
+        self.state  = dict(zip(stateKs, deepcopy(stateVs)))
+        self.solved = dict(zip(stateKs, deepcopy(stateVs)))
 
     def validateFace(func):
         @wraps(func)
@@ -251,13 +253,13 @@ class CubeN:
     
     def reset(self):
         '''Resets the cube to its initial state.'''
-        self.pos = self.solved
+        self.state = deepcopy(self.solved)
 
     def randMove(self):
         '''Returns a random WCA-type move.'''
-        mod = random.choice(MODS)
-        mv = toAlgo(random.choice(self.ms+mod))
-        return mv
+        mv = random.choice(self.ms)
+        mod = random.choice(['']+MODS)
+        return toAlgo(mv + mod)
 
     def scramble(self, m: int):
         '''
