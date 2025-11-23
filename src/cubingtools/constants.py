@@ -1,3 +1,7 @@
+'''
+Contains moves, algorithms and other utility constants
+'''
+
 MOVS     = ['U', 'F', 'R', 'B', 'L', 'D']
 W_MOVS   = [x+'w' for x in MOVS]
 T_MOVS   = [x.lower() for x in MOVS]

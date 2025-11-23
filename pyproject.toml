@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cubingtools"
+version = "0.0.1"
+authors = [
+  { name="Tristan Nathaniel Basri", email="tristan.basri.nathaniel@gmail.com" },
+]
+description = "A utility package for basic Rubik's Cube operations"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/Not-TNB/cubingtools"
+Issues = "https://github.com/Not-TNB/cubingtools/issues"

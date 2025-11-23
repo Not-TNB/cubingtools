@@ -1,5 +1,10 @@
+'''
+Classes and methods working with the internal representation of moves and algorithms,
+which can be performed on cubes.
+'''
+
 import re
-from constants import *
+from cubingtools.constants import *
 
 class Move:
     def __init__(self, width:int=1, mov:str='U', mod:str='1'):

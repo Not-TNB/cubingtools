@@ -1,5 +1,9 @@
-from algorithm import *
-from constants import *
+'''
+Contains the `CubeN` class working with NxN Rubik's cubes for N>=2
+'''
+
+from cubingtools.algorithm import *
+from cubingtools.constants import *
 from functools import wraps
 import random
 from copy import deepcopy
