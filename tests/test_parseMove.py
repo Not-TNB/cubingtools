@@ -20,8 +20,14 @@ def test_toMove_explicit_width():
     assert str(toMove("3Fw")) == "3Fw"
 
 def test_toMove_width_and_mod():
-    assert str(toMove("3Fw2")) == "3Fw2"
+    assert str(toMove("13Fw2")) == "13Fw2"
 
 def test_toMove_invalid_token():
     with pytest.raises(ValueError):
         toMove("Q")
+    with pytest.raises(ValueError):
+        toMove("2F")
+    with pytest.raises(ValueError):
+        toMove("Rw3")
+    with pytest.raises(ValueError):
+        toMove("D'2")

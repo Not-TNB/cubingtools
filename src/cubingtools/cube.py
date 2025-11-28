@@ -150,7 +150,7 @@ class CubeN:
         :rtype: CubeN
         :returns: Itself, after the U turn
 
-        :raises ValueError: If ``n >= self.size``.
+        :raises ValueError: If ``n >= self.size`` or ``n < 1``.
 
         .. Notes::
         ``uTurn(1)`` is equivalent to the move ``U``,
@@ -259,13 +259,13 @@ class CubeN:
         '''Resets the cube to its initial state.'''
         self.state = deepcopy(self.solved)
 
-    def randMove(self):
+    def randMove(self) -> Move:
         '''Returns a random WCA-type move.'''
         mv = random.choice(self.ms)
         mod = random.choice(['']+MODS)
-        return toAlgo(mv + mod)
+        return toMove(mv + mod)
 
-    def scramble(self, m: int):
+    def scramble(self, m: int) -> Algorithm:
         '''
         Scrambles the cube with randomized moves.
         
@@ -282,3 +282,4 @@ class CubeN:
             states.append(deepcopy(self.state))
             algo += mv
         return algo
+    
