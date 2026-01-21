@@ -1,5 +1,5 @@
 import pytest
-from cubingtools.algorithm import Move, toMove, toAlgo, Algorithm
+from cubingtools.algorithm import toAlgo
 from cubingtools.cube import CubeN
 
 def test_algoBB_2():

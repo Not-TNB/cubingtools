@@ -17,7 +17,7 @@ class CubeN:
         :param n: Size of the cube (n x n x n)
         :param cols: Symbol (color) on each face of the cube (In the order UFRBLD)
 
-        >>> myCube  = CubeN()                   # 3x3 cube with standard color scheme
+        >>> myCube  = CubeN()                   # 3x3 cube with standard color scheme (wgrboy)
         >>> revenge = CubeN(n=4, cols='abcdef') # 4x4 cube with custom color scheme
         '''
         if n <= 1             : raise ValueError("Cube size must be at least 2")

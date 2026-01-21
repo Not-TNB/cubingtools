@@ -27,4 +27,4 @@ def test_toAlgo_mismatched_paren():
     with pytest.raises(ValueError):
         toAlgo("(R U")
     with pytest.raises(ValueError):
-        toAlgo("R U2 (D ) R ) B ( F )")
+        toAlgo("R U2 (D ) R ) B ( F ( L )")

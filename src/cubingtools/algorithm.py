@@ -83,62 +83,58 @@ class Algorithm:
 
 def toMove(tok: str) -> Move:
     '''
-    Converts a string token into a Move.
+    Parses a string token into a Move.
 
-    :param tok: The string representation of the move (e.g., U, R2, 3Fw', etc.).
+    :param tok: The string representation of the move (e.g., U, R2, 3Fw', etc.) to be consumed.
 
     :rtype: Move
     :returns: A `Move` object corresponding to the token.
     '''
     def raiseInvalid(): raise ValueError(f'Invalid move token: {tok}')
 
-    token = [t for t in re.findall(r'\d*|[A-Za-z]|w?|[2\']?', tok) if t != '']
-    
-    match len(token):
-        case 1:
-            # Only case: it is exactly one of the base moves
-            if (t:=token[0]) in ALL_MOVS: return Move(1, t, '1')
-            # Invalid!
-            else: raiseInvalid()
+    # helper parsing/guarding functions; raises invalid moves if applicable.
+    def parseWidth(dig): 
+        if not dig.isdigit(): raiseInvalid()
+        return dig if (dig := int(dig)) >= 2 else raiseInvalid()
+    def guardList(x, xs):
+        if x not in xs: raiseInvalid()
+    guardMov = lambda mov: guardList(mov, ALL_MOVS)
+    guardMod = lambda mod: guardList(mod, MODS)
 
-        case 2:
-            # Case 1: 1-base move with modifier
-            if (mov:=token[0]) in ALL_MOVS and (mod:=token[1]) in MODS:
-                return Move(1, mov, mod)
-            # Case 2: wide move without modifier
-            elif (token1:=''.join(token)) in W_MOVS:
-                return Move(2, token1, '1')
-            # Invalid!
-            else: raiseInvalid()
-        
-        case 3:
-            # Case 1: wide move with modifier
-            if (wMov:=''.join(token[:2])) in W_MOVS and (mod:=token[2]) in MODS:
-                return Move(2, wMov, mod)
-            # Case 2: wide move with width
-            elif (w:=token[0]).isdigit() and (wMov:=''.join(token[1:])) in W_MOVS:
-                if (width:=int(w)) >= 2: return Move(width, wMov, '1')
-                else: raiseInvalid()
-            # Invalid!
-            else: raiseInvalid()
-        
-        case 4:
-            # Only case: wide move with width and modifier
-            w = token[0]
-            wMov = ''.join(token[1:3])
-            mod = token[3]
-            if not w.isdigit(): raiseInvalid()
-            if (width:=int(w)) < 2: raiseInvalid()
-            if wMov not in W_MOVS: raiseInvalid()
-            if mod not in MODS: raiseInvalid()
-            return Move(width, wMov, mod)
+    token = [t for t in re.findall(r'\d*|[A-Za-z]|w?|[2\']?', tok) if t != '']
+
+    match token:
+        case [t]:
+            guardMov(t)
+            return Move(1, t, '1')
+        case [mov,'w']:
+            guardMov(mov)
+            return Move(2, mov+'w', '1')
+        case [mov,mod]:
+            guardMov(mov)
+            guardMod(mod)
+            return Move(1, mov, mod)
+        case [mov,'w',mod]:
+            guardMov(mov)
+            guardMod(mod)
+            return Move(2, mov+'w', mod)
+        case [width,mov,'w']:
+            width = parseWidth(width)
+            guardMov(mov)
+            return Move(width, mov+'w', '1')   
+        case [width,mov,'w',mod]:
+            width = parseWidth(width)
+            guardMov(mov)
+            guardMod(mod)
+            return Move(width, mov+'w', mod)
+        case _: raiseInvalid()
 
 
 def toAlgo(algStr: str) -> Algorithm:
     '''
-    Converts a string representation of an algorithm into an Algorithm object. 
+    Parses a string representation of an algorithm into an Algorithm object. 
     
-    :param algStr: The string representation of the algorithm.
+    :param algStr: The string representation of the algorithm to be consumed.
 
     :rtype: Algorithm
     :returns: An `Algorithm` object corresponding to the input string.
