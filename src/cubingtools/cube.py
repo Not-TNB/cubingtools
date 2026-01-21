@@ -20,9 +20,9 @@ class CubeN:
         >>> myCube  = CubeN()                   # 3x3 cube with standard color scheme (wgrboy)
         >>> revenge = CubeN(n=4, cols='abcdef') # 4x4 cube with custom color scheme
         '''
-        if n <= 1             : raise ValueError("Cube size must be at least 2")
-        if len(cols) != 6     : raise ValueError("There must be exactly 6 colors for the cube faces")
-        if len(set(cols)) != 6: raise ValueError("Colors for the cube faces must be unique")
+        if n <= 1              : raise ValueError("Cube size must be at least 2")
+        if len(cols) != 6      : raise ValueError("There must be exactly 6 colors for the cube faces")
+        if len(set(cols)) != 6 : raise ValueError("Colors for the cube faces must be unique")
 
         self.size = n
         self.cols = cols
@@ -46,7 +46,7 @@ class CubeN:
         self.state  = dict(zip(stateKs, deepcopy(stateVs)))
         self.solved = dict(zip(stateKs, deepcopy(stateVs)))
 
-    def validateFace(func):
+    def validateFace(func): # will introduce a face validation check
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             # Prefer an instance attribute 'face' if present, otherwise fall back to the
@@ -135,8 +135,7 @@ class CubeN:
         out += space + '└' + bordr + '┘'
 
         return out
-    
-    # TODO
+
     def __str__(self) -> str:
         '''Print's a net of the cube's current state.'''
         return self.__repr__()

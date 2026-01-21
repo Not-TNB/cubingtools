@@ -3,6 +3,7 @@ Classes and methods working with the internal representation of moves and algori
 which can be performed on cubes.
 '''
 
+import operator
 import re
 from cubingtools.constants import *
 
@@ -25,31 +26,34 @@ class Move:
             if width > 1: self.width = width
             else: raiseInvalid()
 
-        if mod in ['1']+MODS: self.mod = mod
+        if mod in MODS or mod == '1': self.mod = mod
         else: raiseInvalid()
     
     def __repr__(self):
-        return f"Move(width={self.width}, mov='{self.mov}', mod='{self.mod}')"
+        return f"Move(width={self.width}, mov=\"{self.mov}\", mod=\"{self.mod}\")"
     
     def __neg__(self) -> 'Move':
         '''Returns the inverse of the move.'''
-        if self.mod == '2': return self
-        if self.mod == '1': return Move(self.width, self.mov, "'")
-        if self.mod == "'": return Move(self.width, self.mov, '1')
+        match self.mod:
+            case '2': return self
+            case '1': return Move(self.width, self.mov, "'")
+            case "'": return Move(self.width, self.mov, '1')
     
     def __str__(self) -> str:
         '''Returns the string representation of the move.'''
-        return (str(self.width) if self.width>2 else '') + self.mov + (self.mod if self.mod!='1' else '')
+        return ((str(self.width) if self.width>2 else '') +
+                 self.mov +
+                (self.mod if self.mod!='1' else ''))
 
 class Algorithm:
-    def __init__(self, movs: list[Move] | None | str = None):
+    def __init__(self, moves: list[Move] | None | str = None):
         '''
         Represents a sequence of moves (an algorithm) on the cube.
 
         :param movs: A list of `Move` objects representing the sequence of moves.
         '''
-        if isinstance(movs, str): self = toAlgo(movs)
-        else: self.movs = movs or []
+        if isinstance(moves, str): self.movs = toAlgo(moves).movs
+        else: self.movs = moves or []
     
     def inverse(self) -> 'Algorithm':
         '''Returns the inverse of the algorithm.'''
@@ -58,12 +62,22 @@ class Algorithm:
         '''Returns the inverse of the algorithm.'''
         return self.inverse()
     
+    def __repr__(self):
+        padLen = len(str(len(self) - 1))
+        out = list(map(
+                operator.add,
+                [f"{i:>{padLen}}: " for i in range(len(self))],
+                [repr(move) for move in self.movs]))
+        return '\n'.join(out)
+    
     def __str__(self) -> str:
         '''Returns the string representation of the algorithm.'''
         return ' '.join([str(move) for move in self.movs])
 
     def __add__(self, other) -> 'Algorithm':
-        '''Concatenates two algorithms. Accepts addition of an algorithm with one of the following types: Move, Algorithm, String, List[Move]'''
+        '''Concatenates two algorithms. 
+        Accepts addition of an algorithm with one of the following types: 
+        Move, Algorithm, String, List[Move]'''
         if isinstance(other, Move)      : return Algorithm(self.movs + [other])
         if isinstance(other, str)       : return Algorithm(self.movs + toAlgo(other).movs)
         if isinstance(other, Algorithm) : return Algorithm(self.movs + other.movs)
@@ -96,14 +110,13 @@ def toMove(tok: str) -> Move:
     def parseWidth(dig): 
         if not dig.isdigit(): raiseInvalid()
         return dig if (dig := int(dig)) >= 2 else raiseInvalid()
-    def guardList(x, xs):
-        if x not in xs: raiseInvalid()
+    def guardList(x, xs): return None if x in xs else raiseInvalid()
     guardMov = lambda mov: guardList(mov, ALL_MOVS)
     guardMod = lambda mod: guardList(mod, MODS)
 
-    token = [t for t in re.findall(r'\d*|[A-Za-z]|w?|[2\']?', tok) if t != '']
+    tokens = [t for t in re.findall(r'\d*|[A-Za-z]|w?|[2\']?', tok) if t != '']
 
-    match token:
+    match tokens:
         case [t]:
             guardMov(t)
             return Move(1, t, '1')
@@ -128,7 +141,6 @@ def toMove(tok: str) -> Move:
             guardMod(mod)
             return Move(width, mov+'w', mod)
         case _: raiseInvalid()
-
 
 def toAlgo(algStr: str) -> Algorithm:
     '''
