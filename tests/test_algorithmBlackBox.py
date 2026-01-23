@@ -27,3 +27,9 @@ def test_algoBB_7():
     c7 >> algo
     c7 >> -algo
     assert c7.isSolved()
+
+def test_algoBB_60():
+    c100 = CubeN(60)
+    alg = c100.scramble(500)
+    c100 >> -alg
+    assert c100.isSolved()

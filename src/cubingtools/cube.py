@@ -30,9 +30,9 @@ class CubeN:
         # Generate WCA-type move list
         match n:
             case 2: self.ms = ['R', 'U', 'F'] # same as MOVS[:3]
-            case 3: self.ms = MOVS
+            case 3: self.ms = deepcopy(MOVS)
             case _: 
-                self.ms = MOVS
+                self.ms = deepcopy(MOVS)
                 for i in range(2,1+n//2):
                     self.ms += [str(i)+m for m in W_MOVS]
 
@@ -44,7 +44,7 @@ class CubeN:
         stateVs = list(map(genFaceMat, self.cols))
 
         self.state  = dict(zip(stateKs, deepcopy(stateVs)))
-        self.solved = dict(zip(stateKs, deepcopy(stateVs)))
+        self.solved = deepcopy(self.state)
 
     def validateFace(func): # will introduce a face validation check
         @wraps(func)
@@ -251,7 +251,7 @@ class CubeN:
         '''Returns `True` if the cube is in a solved state, and `False` otherwise.'''
         def isConst(mat):
             v = mat[0][0]
-            return not any(x != v for row in mat for x in row)
+            return not any(x!=v for row in mat for x in row)
         return all(map(isConst, self.state.values()))
     
     def reset(self):
@@ -264,12 +264,13 @@ class CubeN:
         mod = random.choice(['']+MODS)
         return toMove(mv + mod)
 
-    def scramble(self, m: int) -> Algorithm:
+    def scramble(self, m: int = 0) -> Algorithm:
         '''
         Scrambles the cube with randomized moves.
         
         :param m: The number of moves used to scramble the cube.
         '''
+        if m == 0: m = 20*(self.size - 2)
         states = [deepcopy(self.state)]
         algo = Algorithm()
         while len(algo)<m:
@@ -281,4 +282,3 @@ class CubeN:
             states.append(deepcopy(self.state))
             algo += mv
         return algo
-    

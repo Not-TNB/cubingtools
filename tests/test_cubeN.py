@@ -43,7 +43,6 @@ def test_rotations_are_inverse():
     c.state[face] = r2
     assert c.rotF2(face) == orig
 
-
 def test_show_face_returns_string():
     c = CubeN()
     out = c.showFace("U")
