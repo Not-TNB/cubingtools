@@ -15,7 +15,16 @@ def test_scrambles_are_valid():
             assert isValid(c.state, n)
 
 def test_scrambles_are_valid_big():
-    for n in [50,70]:
+    for n in [51,61]:
         c = CubeN(n)
         c.scramble()
-        assert isValid(c.state, n)
+        assert isValidCube(c)
+
+def test_invalid_color_num():
+    d = {'L': [['w', 'w', 'w'], ['w', 'w', 'w'], ['w', 'w', 'w']], 
+         'U': [['g', 'g', 'g'], ['g', 'g', 'g'], ['g', 'g', 'g']], 
+         'B': [['r', 'r', 'r'], ['r', 'r', 'r'], ['r', 'r', 'y']], # extra y here!
+         'R': [['b', 'b', 'b'], ['b', 'b', 'b'], ['b', 'b', 'b']], 
+         'F': [['o', 'o', 'o'], ['o', 'o', 'o'], ['o', 'o', 'o']], 
+         'D': [['y', 'y', 'y'], ['y', 'y', 'y'], ['y', 'y', 'y']]}
+    assert not isValid(d, 3)

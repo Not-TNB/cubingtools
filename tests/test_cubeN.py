@@ -12,7 +12,6 @@ def test_construct_default_cube():
     assert c.cols == "wgrboy"
     assert set(c.state.keys()) == set("UFRBLD")
 
-
 def test_invalid_size():
     with pytest.raises(ValueError):
         CubeN(1)
@@ -84,19 +83,16 @@ def test_u_turn_works():
     after = c.state["F"][0]
     assert after != before  # U should rotate F top row
 
-
 def test_invalid_u_turn():
     c = CubeN(3)
     with pytest.raises(ValueError):
         c.uTurn(3)
-
 
 def test_turn_basic_move():
     c = CubeN()
     before = deepcopy(c.state)
     c.turn(Move(1, "U", "1"))
     assert c.state != before
-
 
 def test_turn_prime_and_double():
     c = CubeN()
@@ -117,13 +113,11 @@ def test_algo_string():
     c.algo("R U R' U'")
     assert c.state != before
 
-
 def test_algo_move():
     c = CubeN()
     before = deepcopy(c.state)
     c.algo(Move(1, "F", "1"))
     assert c.state != before
-
 
 def test_algo_algorithm():
     c = CubeN()
@@ -131,7 +125,6 @@ def test_algo_algorithm():
     before = deepcopy(c.state)
     c.algo(alg)
     assert c.state != before
-
 
 # __rshift__ (>>) operator
 

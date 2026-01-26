@@ -1,5 +1,6 @@
 import pytest
 from cubingtools.algorithm import Move, toMove, toAlgo, Algorithm
+from cubingtools.error import *
 
 def test_toAlgo_basic():
     alg = toAlgo("U R2 F'")
@@ -24,7 +25,7 @@ def test_toAlgo_wide_moves():
     assert str(alg) == "Rw U Rw'"
 
 def test_toAlgo_mismatched_paren():
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidAlgorithmError):
         toAlgo("(R U")
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidAlgorithmError):
         toAlgo("R U2 (D ) R ) B ( F ( L )")

@@ -7,33 +7,49 @@ from cubingtools.constants import *
 from cubingtools.cube import *
 from collections import Counter
 
-def validateShape(state: dict, n: int) -> bool:
-    if set(state.keys()) != set("UFRBLD"): return False
+def __validateShape(state: dict, n: int) -> bool:
+    if set(state.keys()) != set(FACES): return False
     for face in state.values():
         if len(face) != n: return False
         if any(len(row) != n for row in face): return False
     return True
-def validateColorCounts(state: dict, n: int) -> bool | str:
+
+def __validateColorCounts(state: dict, n: int) -> bool:
     a = n*n
     counts = Counter([
         sticker for face in state.values()
                 for row in face
                 for sticker in row
     ])
-    if all(v==a for v in counts.values()) and len(counts) == 6: 
-        return counts.keys()
+    print(counts.values())
+    if all(v==a for v in counts.values()) and len(counts) == 6:
+        return [state[face][0][0] for face in FACES] # ordered colors
     return False
-def validateCenters(state: dict, n: int, colors: str) -> bool:
-    return set(face[1][1] for face in state.values()) == set(c for c in colors)
+
+def __validateCenters(state: dict, n: int, colors: str) -> bool:
+    return set(face[1][1] for face in state.values()) == set(colors)
+
+###################################################################################################
+
+def __validateCorners(state: dict, n: int, colors: str) -> bool:
+    pass
+
+###################################################################################################
+
+# allows early fail
+class _GuardFail(Exception): pass
 
 def isValid(state: dict, n: int) -> bool:
-    def guard(f, *args): # early exists False if condition not met
+    def guard(f, *args): # early exits if result is falsy
         result = f(state, n, *args)
-        if result: return result
-        return False
+        return result if result else _GuardFail()
     
-    guard(validateShape)
-    colors = guard(validateColorCounts) 
-    guard(validateCenters, colors)
-    return True
-    # TODO complete
+    try:
+        guard(__validateShape)
+        colors = guard(__validateColorCounts)
+        guard(__validateCenters, colors)
+    except: return False
+    else: return True
+
+def isValidCube(cube: CubeN) -> bool:
+    return isValid(cube.state, cube.size)

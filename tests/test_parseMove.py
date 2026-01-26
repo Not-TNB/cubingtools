@@ -1,5 +1,6 @@
 import pytest
 from cubingtools.algorithm import Move, toMove, toAlgo, Algorithm
+from cubingtools.error import *
 
 def test_toMove_simple():
     m = toMove("U")
@@ -23,11 +24,11 @@ def test_toMove_width_and_mod():
     assert str(toMove("13Fw2")) == "13Fw2"
 
 def test_toMove_invalid_token():
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidMoveError):
         toMove("Q")
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidMoveError):
         toMove("2F")
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidMoveError):
         toMove("Rw3")
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidMoveError):
         toMove("D'2")

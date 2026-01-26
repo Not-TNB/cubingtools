@@ -9,7 +9,7 @@ import random
 from copy import deepcopy
 
 class CubeN:
-    def __init__(self, n:int=3, cols:str='wgrboy'):
+    def __init__(self, n: int=3, cols: str='wgrboy'):
         '''
         Initialize a solved NxNxN Rubik's Cube, defaulting to the classic 3x3 
         and standard color scheme (white, green, red, blue, orange, yellow).
@@ -37,7 +37,7 @@ class CubeN:
                     self.ms += [str(i)+m for m in W_MOVS]
 
         # Generate solved and initial state
-        def genFaceMat(col:str) -> list[list[str]]:
+        def genFaceMat(col: str) -> list[list[str]]:
             '''Generate a face matrix filled with the given color.'''
             return [[col for _ in range(self.size)] for _ in range(self.size)]
         stateKs = 'UFRBLD'
@@ -61,7 +61,7 @@ class CubeN:
         return wrapper
 
     @validateFace
-    def rotFC(self, face:str) -> list[list[str]]:
+    def rotFC(self, face: str) -> list[list[str]]:
         '''
         Returns the clockwise roation of a single face.
 
@@ -72,7 +72,7 @@ class CubeN:
         '''
         return [list(row) for row in zip(*self.state[face][::-1])]
     @validateFace
-    def rotFA(self, face:str) -> list[list[str]]:
+    def rotFA(self, face: str) -> list[list[str]]:
         '''
         Returns the anti-clockwise roation of a single face.
 
@@ -83,7 +83,7 @@ class CubeN:
         ''' 
         return list(list(x) for x in zip(*self.state[face]))[::-1]
     @validateFace
-    def rotF2(self, face:str) -> list[list[str]]:
+    def rotF2(self, face: str) -> list[list[str]]:
         '''
         Returns the 180 degree roation of a single face.
 
@@ -95,7 +95,7 @@ class CubeN:
         return [row[::-1] for row in self.state[face][::-1]]
     
     @validateFace
-    def showFace(self, face:str) -> str:
+    def showFace(self, face: str) -> str:
         '''
         Print a single face of the cube.
 
@@ -140,7 +140,7 @@ class CubeN:
         '''Print's a net of the cube's current state.'''
         return self.__repr__()
     
-    def uTurn(self, n:int=1) -> 'CubeN':
+    def uTurn(self, n: int=1) -> 'CubeN':
         '''
         Rotates the top `n` layers of the cube clockwise.
 
@@ -220,7 +220,7 @@ class CubeN:
             case 'f': self.algo('z B')
             case 'b': self.algo('z\' F')
 
-    def algo(self, alg) -> None:
+    def algo(self, alg: Move | str | Algorithm) -> None:
         '''
         Executes a given `Move` or `Algorithm` to the cube's state.
 
@@ -264,7 +264,7 @@ class CubeN:
         mod = random.choice(['']+MODS)
         return toMove(mv + mod)
 
-    def scramble(self, m: int = 0) -> Algorithm:
+    def scramble(self, m: int=0) -> Algorithm:
         '''
         Scrambles the cube with randomized moves.
         

@@ -6,9 +6,10 @@ which can be performed on cubes.
 import operator
 import re
 from cubingtools.constants import *
+from cubingtools.error import *
 
 class Move:
-    def __init__(self, width:int=1, mov:str='U', mod:str='1'):
+    def __init__(self, width: int=1, mov: str='U', mod: str='1'):
         '''
         Represents a single move on the cube.
 
@@ -93,7 +94,7 @@ class Algorithm:
         '''Returns the number of moves making up the algorithm.'''
         return len(self.movs)
 
-################################################################################################
+###################################################################################################
 
 def toMove(tok: str) -> Move:
     '''
@@ -104,17 +105,18 @@ def toMove(tok: str) -> Move:
     :rtype: Move
     :returns: A `Move` object corresponding to the token.
     '''
-    def raiseInvalid(): raise ValueError(f'Invalid move token: {tok}')
 
     # helper parsing/guarding functions; raises invalid moves if applicable.
     def parseWidth(dig): 
-        if not dig.isdigit(): raiseInvalid()
-        return dig if (dig := int(dig)) >= 2 else raiseInvalid()
-    def guardList(x, xs): return None if x in xs else raiseInvalid()
+        if not dig.isdigit()   : raise InvalidMoveError(tok)
+        if (d := int(dig)) < 2 : raise InvalidMoveError(tok)
+        return d
+    def guardList(x, xs): 
+        if x not in xs: raise InvalidMoveError(tok)
     guardMov = lambda mov: guardList(mov, ALL_MOVS)
     guardMod = lambda mod: guardList(mod, MODS)
 
-    tokens = [t for t in re.findall(r'\d*|[A-Za-z]|w?|[2\']?', tok) if t != '']
+    tokens = [t for t in re.findall(MOVE_LEXER_REGEX, tok) if t != '']
 
     match tokens:
         case [t]:
@@ -140,7 +142,7 @@ def toMove(tok: str) -> Move:
             guardMov(mov)
             guardMod(mod)
             return Move(width, mov+'w', mod)
-        case _: raiseInvalid()
+        case _: raise InvalidMoveError(tok)
 
 def toAlgo(algStr: str) -> Algorithm:
     '''
@@ -153,32 +155,29 @@ def toAlgo(algStr: str) -> Algorithm:
 
     >>> toAlgo("U R2 F' 3Rw2 (R U')3 D") -> Algorithm(...)
     '''
-    # split on (optional digits)(one A-Za-z)(optional w)(optional 2 or ')
-    #       or (left bracket "(")
-    #       or (right bracket ")")(optional digits)
-    tokens = re.findall(r'\d*[A-Za-z]w?[2\']?|\(|\)\d*', algStr)
+    tokens = re.findall(ALGORITHM_LEXER_REGEX, algStr)
     stk = []
     for t in tokens:
         if t.startswith(')'):
             # how many times to repeat inner alg?
             if t == ')': mul = 1
             else: 
-                if (dig:=t[1:]).isdigit(): mul = int(dig)
-                else: raise ValueError(f"Invalid multiplier in token: {t}")
+                if (dig := t[1:]).isdigit(): mul = int(dig)
+                else: raise InvalidAlgorithmError(algStr, f"Invalid multiplier in token: {t}")
             # pop til '(' and remove it
             inner = []
             while stk[-1] != '(':
                 inner.append(stk.pop())
-                if not stk: raise ValueError("Mismatched parentheses in algorithm string.")
+                if not stk: 
+                    raise InvalidAlgorithmError(algStr, "Mismatched parentheses in algorithm string.")
             stk.pop()
             # repeat inner alg and push stk
             innerAlg = Algorithm(inner[::-1])
             stk.extend((innerAlg * mul).movs)
-        elif t == '(':
-            stk.append(t)
-        else:
-            stk.append(toMove(t))
+        elif t == '(': stk.append(t)
+        else: stk.append(toMove(t))
 
     if '(' in stk:
-        raise ValueError("Unmatched '(' in algorithm string.")
+        raise InvalidAlgorithmError(algStr, "Unmatched '(' in algorithm string.")
+    
     return Algorithm(stk)

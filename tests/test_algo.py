@@ -32,10 +32,8 @@ def test_algorithm_repeat():
 
 def test_algorithm_inverse_basic():
     a = toAlgo("U R' F2")
-    inv = -a
-    # reversed and each move inverted
-    assert str(inv) == "F2 R U'"
+    assert str(a.inverse()) == "F2 R U'"
 
-def test_algorithm_inverse_double_inverse():
+def test_algorithm_double_inverse():
     a = toAlgo("U R")
     assert str(-(-a)) == "U R"
