@@ -11,9 +11,6 @@ MIDS     = ['M', 'E', 'S']
 MODS     = ["'", '2']
 ALL_MOVS = MOVS + W_MOVS + T_MOVS + ROTS + MIDS
 
-# VALIDATION STUFF
-FACES = MOVS
-
 # REGEXES
 MOVE_LEXER_REGEX = r"\d*|[A-Za-z]|w?|[2\']?"
 ALGORITHM_LEXER_REGEX = r"\d*[A-Za-z]w?[2\']?|\(|\)\d*"
