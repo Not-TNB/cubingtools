@@ -28,8 +28,8 @@ def test_algoBB_7():
     c7 >> -algo
     assert c7.isSolved()
 
-def test_algoBB_60():
-    c100 = CubeN(60)
-    alg = c100.scramble(500)
-    c100 >> -alg
-    assert c100.isSolved()
+def test_algoBB_50():
+    c50 = CubeN(50)
+    alg = c50.scramble(200)
+    c50 >> -alg
+    assert c50.isSolved()

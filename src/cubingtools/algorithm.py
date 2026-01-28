@@ -3,6 +3,7 @@ Classes and methods working with the internal representation of moves and algori
 which can be performed on cubes.
 '''
 
+from __future__ import annotations
 import operator
 import re
 from cubingtools.constants import *
@@ -11,24 +12,19 @@ from cubingtools.error import *
 class Move:
     def __init__(self, width: int=1, mov: str='U', mod: str='1'):
         '''
-        Represents a single move on the cube.
-
+        Initializes a `Move` object a representing single move on a cube.
+        
         :param width: The number of layers to turn (default is 1).
         :param mov: The move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
         :param mod: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
         '''
-        def raiseInvalid(): raise ValueError(f'Invalid move: {mov}.')
+        if mov not in ALL_MOVS            : raise InvalidMoveError(self)
+        if mov in W_MOVS and width <= 1   : raise InvalidMoveError(self)
+        if mod not in MODS and mod != '1' : raise InvalidMoveError(self)
 
-        if mov in ALL_MOVS: self.mov = mov
-        else: raiseInvalid()
-
-        self.width = 1
-        if mov in W_MOVS:
-            if width > 1: self.width = width
-            else: raiseInvalid()
-
-        if mod in MODS or mod == '1': self.mod = mod
-        else: raiseInvalid()
+        self.mov = mov
+        self.width = width
+        self.mod = mod
     
     def __repr__(self):
         return f"Move(width={self.width}, mov=\"{self.mov}\", mod=\"{self.mod}\")"
@@ -36,9 +32,10 @@ class Move:
     def __neg__(self) -> 'Move':
         '''Returns the inverse of the move.'''
         match self.mod:
-            case '2': return self
-            case '1': return Move(self.width, self.mov, "'")
-            case "'": return Move(self.width, self.mov, '1')
+            case '2': newMod = '2'
+            case '1': newMod = "'"
+            case "'": newMod = '1'
+        return Move(self.width, self.mov, newMod)
     
     def __str__(self) -> str:
         '''Returns the string representation of the move.'''
@@ -51,7 +48,7 @@ class Algorithm:
         '''
         Represents a sequence of moves (an algorithm) on the cube.
 
-        :param movs: A list of `Move` objects representing the sequence of moves.
+        :param moves: A list of `Move` objects representing the sequence of moves.
         '''
         if isinstance(moves, str): self.movs = toAlgo(moves).movs
         else: self.movs = moves or []
@@ -59,6 +56,7 @@ class Algorithm:
     def inverse(self) -> 'Algorithm':
         '''Returns the inverse of the algorithm.'''
         return Algorithm([-move for move in self.movs[::-1]])
+    
     def __neg__(self) -> 'Algorithm':
         '''Returns the inverse of the algorithm.'''
         return self.inverse()
@@ -75,15 +73,15 @@ class Algorithm:
         '''Returns the string representation of the algorithm.'''
         return ' '.join([str(move) for move in self.movs])
 
-    def __add__(self, other) -> 'Algorithm':
+    def __add__(self, other: Move | str | 'Algorithm') -> 'Algorithm':
         '''Concatenates two algorithms. 
         Accepts addition of an algorithm with one of the following types: 
         Move, Algorithm, String, List[Move]'''
-        if isinstance(other, Move)      : return Algorithm(self.movs + [other])
-        if isinstance(other, str)       : return Algorithm(self.movs + toAlgo(other).movs)
-        if isinstance(other, Algorithm) : return Algorithm(self.movs + other.movs)
-        if isinstance(other, list)      : return Algorithm(self.movs + other)
-        raise TypeError(f'Cannot add Algorithm with type {type(other)}.')
+        match other:
+            case Move()      : return Algorithm(self.movs + [other])
+            case str()       : return Algorithm(self.movs + toAlgo(other).movs)
+            case Algorithm() : return Algorithm(self.movs + other.movs)
+            case _ : raise TypeError(f'Cannot add Algorithm with type {type(other)}.')
     
     def __mul__(self, times:int) -> 'Algorithm':
         '''Repeats the algorithm a specified number of times.'''
@@ -105,7 +103,6 @@ def toMove(tok: str) -> Move:
     :rtype: Move
     :returns: A `Move` object corresponding to the token.
     '''
-
     # helper parsing/guarding functions; raises invalid moves if applicable.
     def parseWidth(dig): 
         if not dig.isdigit()   : raise InvalidMoveError(tok)

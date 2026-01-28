@@ -11,7 +11,7 @@ from copy import deepcopy
 class CubeN:
     def __init__(self, n: int=3, cols: str='wgrboy'):
         '''
-        Initialize a solved NxNxN Rubik's Cube, defaulting to the classic 3x3 
+        Initializes a solved NxNxN Rubik's Cube, defaulting to the classic 3x3 
         and standard color scheme (white, green, red, blue, orange, yellow).
 
         :param n: Size of the cube (n x n x n)
@@ -263,6 +263,9 @@ class CubeN:
         mv = random.choice(self.ms)
         mod = random.choice(['']+MODS)
         return toMove(mv + mod)
+    
+    def __hash__(self) -> int:
+        return hash(str(self))
 
     def scramble(self, m: int=0) -> Algorithm:
         '''
@@ -271,14 +274,14 @@ class CubeN:
         :param m: The number of moves used to scramble the cube.
         '''
         if m == 0: m = 20*(self.size - 2)
-        states = [deepcopy(self.state)]
+        states = set()
         algo = Algorithm()
         while len(algo)<m:
             mv = self.randMove()
             self.algo(mv)
-            if self.state in states: 
+            if self in states: 
                 self.algo(-mv)
                 continue
-            states.append(deepcopy(self.state))
+            states.add(self)
             algo += mv
         return algo
