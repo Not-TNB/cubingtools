@@ -32,3 +32,5 @@ def test_toMove_invalid_token():
         toMove("Rw3")
     with pytest.raises(InvalidMoveError):
         toMove("D'2")
+    with pytest.raises(InvalidMoveError):
+        toMove("Sw")

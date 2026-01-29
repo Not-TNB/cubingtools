@@ -157,16 +157,10 @@ class CubeN:
         '''
         if n<1 or n>=self.size:
             raise ValueError(f"n must be stricly 1 or more, and strictly less than self.size (your n={n})")
-
-        # Rotate U
         self.state['U'] = self.rotFC('U')
-
-        # Apply effects to other layers
         for i in range(n):
             (self.state['F'][i][:], self.state['R'][i][:], self.state['B'][i][:], self.state['L'][i][:]) = (
-            self.state['R'][i][:], self.state['B'][i][:], self.state['L'][i][:], self.state['F'][i][:])
-        
-        return self
+             self.state['R'][i][:], self.state['B'][i][:], self.state['L'][i][:], self.state['F'][i][:])
     
     def xRot(self) -> None:
         '''Rotates the entire cube along the x-axis clockwise.'''
@@ -259,13 +253,12 @@ class CubeN:
         self.state = deepcopy(self.solved)
 
     def randMove(self) -> Move:
-        '''Returns a random WCA-type move.'''
+        '''Returns a random WCA-scramble move'''
         mv = random.choice(self.ms)
         mod = random.choice(['']+MODS)
         return toMove(mv + mod)
     
-    def __hash__(self) -> int:
-        return hash(str(self))
+    def __hash__(self) -> int: return hash(str(self))
 
     def scramble(self, m: int=0) -> Algorithm:
         '''
@@ -273,15 +266,21 @@ class CubeN:
         
         :param m: The number of moves used to scramble the cube.
         '''
-        if m == 0: m = 20*(self.size - 2)
+        if m <= 0: m = 8*self.size
         states = set()
         algo = Algorithm()
+        lastBaseMov = None
         while len(algo)<m:
             mv = self.randMove()
+
+            if lastBaseMov == mv.mov: continue
+            lastBaseMov = mv.mov
+
             self.algo(mv)
             if self in states: 
                 self.algo(-mv)
                 continue
+
             states.add(self)
             algo += mv
         return algo

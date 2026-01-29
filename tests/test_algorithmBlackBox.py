@@ -30,6 +30,6 @@ def test_algoBB_7():
 
 def test_algoBB_50():
     c50 = CubeN(50)
-    alg = c50.scramble(200)
+    alg = c50.scramble()
     c50 >> -alg
     assert c50.isSolved()

@@ -1,5 +1,5 @@
 '''
-Contains moves, algorithms and other utility constants
+Contains movesets and other utility constants
 '''
 
 # MOVESET

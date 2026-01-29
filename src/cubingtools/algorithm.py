@@ -65,7 +65,7 @@ class Algorithm:
         padLen = len(str(len(self) - 1))
         out = list(map(
                 operator.add,
-                [f"{i:>{padLen}}: " for i in range(len(self))],
+                [f"{i:>{padLen}}: " for i in range(1,len(self)+1)],
                 [repr(move) for move in self.movs]))
         return '\n'.join(out)
     
@@ -110,33 +110,34 @@ def toMove(tok: str) -> Move:
         return d
     def guardList(x, xs): 
         if x not in xs: raise InvalidMoveError(tok)
-    guardMov = lambda mov: guardList(mov, ALL_MOVS)
-    guardMod = lambda mod: guardList(mod, MODS)
+    guardAllMov  = lambda mov: guardList(mov, ALL_MOVS)
+    guardWideMov = lambda mov: guardList(mov, MOVS)
+    guardMod     = lambda mod: guardList(mod, MODS)
 
     tokens = [t for t in re.findall(MOVE_LEXER_REGEX, tok) if t != '']
 
     match tokens:
         case [t]:
-            guardMov(t)
+            guardAllMov(t)
             return Move(1, t, '1')
         case [mov,'w']:
-            guardMov(mov)
+            guardWideMov(mov)
             return Move(2, mov+'w', '1')
         case [mov,mod]:
-            guardMov(mov)
+            guardAllMov(mov)
             guardMod(mod)
             return Move(1, mov, mod)
         case [mov,'w',mod]:
-            guardMov(mov)
+            guardWideMov(mov)
             guardMod(mod)
-            return Move(2, mov+'w', mod)
+            return Move(2, mov+'w', mod) # ex. Rw === 2Rw
         case [width,mov,'w']:
             width = parseWidth(width)
-            guardMov(mov)
+            guardWideMov(mov)
             return Move(width, mov+'w', '1')   
         case [width,mov,'w',mod]:
             width = parseWidth(width)
-            guardMov(mov)
+            guardWideMov(mov)
             guardMod(mod)
             return Move(width, mov+'w', mod)
         case _: raise InvalidMoveError(tok)
