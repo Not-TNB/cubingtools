@@ -223,12 +223,13 @@ class CubeN:
         >>> myCube = CubeN(3) ; alg1 = "R U R' U'"
         >>> myCube.algo(alg1)
         '''
-        if   isinstance(alg, Move): self.turn(alg)
-        elif isinstance(alg, str): self.algo(toAlgo(alg))
-        elif isinstance(alg, Algorithm): 
-            for m in alg.movs: self.turn(m)
-        else:
-            raise TypeError(f"Cannot execute the type {type(alg)} on a cube.")
+        match alg:
+            case Move(): self.turn(alg)
+            case str() : self.algo(Algorithm.parse(alg))
+            case Algorithm(): 
+                for m in alg.movs: self.turn(m)
+            case _:
+                raise TypeError(f"Cannot execute the type {type(alg)} on a cube.")
         
     def __rshift__(self, alg: Move | str | Algorithm) -> 'CubeN': 
         '''
@@ -261,7 +262,7 @@ class CubeN:
         '''Returns a random WCA-scramble move'''
         mov = random.choice(self.ms)
         mod = random.choice(['']+MODS)
-        return toMove(mov + mod)
+        return Move.parse(mov + mod)
 
     def __hash__(self) -> int:
         return hash(''.join([
@@ -297,3 +298,4 @@ class CubeN:
             states.add(self)
             algo += mv
         return algo
+    

@@ -1,5 +1,5 @@
 import pytest
-from cubingtools.algorithm import Move, toMove, toAlgo, Algorithm
+from cubingtools.algorithm import Move, Algorithm
 
 def test_algorithm_str():
     alg = Algorithm([Move(1, 'U', '1'), Move(1, 'R', "'")])
@@ -20,20 +20,20 @@ def test_algorithm_add_string():
     assert str(r) == "U R2 F'"
 
 def test_algorithm_add_algorithm():
-    a1 = toAlgo("U R")
-    a2 = toAlgo("F2 U'")
+    a1 = Algorithm.parse("U R")
+    a2 = Algorithm.parse("F2 U'")
     a3 = a1 + a2
     assert str(a3) == "U R F2 U'"
 
 def test_algorithm_repeat():
-    a = toAlgo("R U")
+    a = Algorithm.parse("R U")
     r = a * 3
     assert str(r) == "R U R U R U"
 
 def test_algorithm_inverse_basic():
-    a = toAlgo("U R' F2")
+    a = Algorithm.parse("U R' F2")
     assert str(a.inverse()) == "F2 R U'"
 
 def test_algorithm_double_inverse():
-    a = toAlgo("U R")
+    a = Algorithm.parse("U R")
     assert str(-(-a)) == "U R"

@@ -1,5 +1,5 @@
 import pytest
-from cubingtools.algorithm import Move, toMove, toAlgo, Algorithm
+from cubingtools.algorithm import Move
 
 def test_move_simple():
     m = Move(1, 'U', '1')

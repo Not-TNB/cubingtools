@@ -42,6 +42,54 @@ class Move:
         return ((str(self.width) if self.width>2 else '') +
                  self.mov +
                 (self.mod if self.mod!='1' else ''))
+    
+    def parse(tok: str) -> Move:
+        '''
+        Parses a string token into a Move.
+
+        :param tok: The string representation of the move (e.g., U, R2, 3Fw', etc.) to be consumed.
+
+        :rtype: Move
+        :returns: A `Move` object corresponding to the token.
+        '''
+        # helper parsing/guarding functions; raises invalid moves if applicable.
+        def parseWidth(dig): 
+            if not dig.isdigit()   : raise InvalidMoveError(tok)
+            if (d := int(dig)) < 2 : raise InvalidMoveError(tok)
+            return d
+        def guardList(x, xs): 
+            if x not in xs: raise InvalidMoveError(tok)
+        guardAllMov  = lambda mov: guardList(mov, ALL_MOVS)
+        guardWideMov = lambda mov: guardList(mov, MOVS)
+        guardMod     = lambda mod: guardList(mod, MODS)
+
+        tokens = [t for t in re.findall(MOVE_LEXER_REGEX, tok) if t != '']
+
+        match tokens:
+            case [t]:
+                guardAllMov(t)
+                return Move(1, t, '1')
+            case [mov,'w']:
+                guardWideMov(mov)
+                return Move(2, mov+'w', '1')
+            case [mov,mod]:
+                guardAllMov(mov)
+                guardMod(mod)
+                return Move(1, mov, mod)
+            case [mov,'w',mod]:
+                guardWideMov(mov)
+                guardMod(mod)
+                return Move(2, mov+'w', mod) # ex. Rw === 2Rw
+            case [width,mov,'w']:
+                width = parseWidth(width)
+                guardWideMov(mov)
+                return Move(width, mov+'w', '1')   
+            case [width,mov,'w',mod]:
+                width = parseWidth(width)
+                guardWideMov(mov)
+                guardMod(mod)
+                return Move(width, mov+'w', mod)
+            case _: raise InvalidMoveError(tok)
 
 class Algorithm:
     def __init__(self, moves: list[Move] = []):
@@ -78,7 +126,7 @@ class Algorithm:
         Move, Algorithm, String, List[Move]'''
         match other:
             case Move()      : return Algorithm(self.movs + [other])
-            case str()       : return Algorithm(self.movs + toAlgo(other).movs)
+            case str()       : return Algorithm(self.movs + Algorithm.parse(other).movs)
             case Algorithm() : return Algorithm(self.movs + other.movs)
             case _ : raise TypeError(f'Cannot add Algorithm with type {type(other)}.')
     
@@ -90,91 +138,41 @@ class Algorithm:
     def __len__(self) -> int: 
         '''Returns the number of moves making up the algorithm.'''
         return len(self.movs)
-
-###################################################################################################
-
-def toMove(tok: str) -> Move:
-    '''
-    Parses a string token into a Move.
-
-    :param tok: The string representation of the move (e.g., U, R2, 3Fw', etc.) to be consumed.
-
-    :rtype: Move
-    :returns: A `Move` object corresponding to the token.
-    '''
-    # helper parsing/guarding functions; raises invalid moves if applicable.
-    def parseWidth(dig): 
-        if not dig.isdigit()   : raise InvalidMoveError(tok)
-        if (d := int(dig)) < 2 : raise InvalidMoveError(tok)
-        return d
-    def guardList(x, xs): 
-        if x not in xs: raise InvalidMoveError(tok)
-    guardAllMov  = lambda mov: guardList(mov, ALL_MOVS)
-    guardWideMov = lambda mov: guardList(mov, MOVS)
-    guardMod     = lambda mod: guardList(mod, MODS)
-
-    tokens = [t for t in re.findall(MOVE_LEXER_REGEX, tok) if t != '']
-
-    match tokens:
-        case [t]:
-            guardAllMov(t)
-            return Move(1, t, '1')
-        case [mov,'w']:
-            guardWideMov(mov)
-            return Move(2, mov+'w', '1')
-        case [mov,mod]:
-            guardAllMov(mov)
-            guardMod(mod)
-            return Move(1, mov, mod)
-        case [mov,'w',mod]:
-            guardWideMov(mov)
-            guardMod(mod)
-            return Move(2, mov+'w', mod) # ex. Rw === 2Rw
-        case [width,mov,'w']:
-            width = parseWidth(width)
-            guardWideMov(mov)
-            return Move(width, mov+'w', '1')   
-        case [width,mov,'w',mod]:
-            width = parseWidth(width)
-            guardWideMov(mov)
-            guardMod(mod)
-            return Move(width, mov+'w', mod)
-        case _: raise InvalidMoveError(tok)
-
-def toAlgo(algStr: str) -> Algorithm:
-    '''
-    Parses a string representation of an algorithm into an Algorithm object. 
     
-    :param algStr: The string representation of the algorithm to be consumed.
+    def parse(algStr: str) -> Algorithm:
+        '''
+        Parses a string representation of an algorithm into an Algorithm object. 
+        
+        :param algStr: The string representation of the algorithm to be consumed.
 
-    :rtype: Algorithm
-    :returns: An `Algorithm` object corresponding to the input string.
+        :rtype: Algorithm
+        :returns: An `Algorithm` object corresponding to the input string.
 
-    >>> toAlgo("U R2 F' 3Rw2 (R U')3 D") -> Algorithm(...)
-    '''
-    tokens = re.findall(ALGORITHM_LEXER_REGEX, algStr)
-    stk = []
-    for t in tokens:
-        if t.startswith(')'):
-            # how many times to repeat inner alg?
-            if t == ')': mul = 1
-            else: 
-                if (dig := t[1:]).isdigit(): mul = int(dig)
-                else: raise InvalidAlgorithmError(algStr, f"Invalid multiplier in token: {t}")
-            # pop til '(' and remove it
-            inner = []
-            while stk[-1] != '(':
-                inner.append(stk.pop())
-                if not stk: 
-                    raise InvalidAlgorithmError(algStr, "Mismatched parentheses in algorithm string.")
-            stk.pop()
-            # repeat inner alg and push stk
-            innerAlg = Algorithm(inner[::-1])
-            stk.extend((innerAlg * mul).movs)
-        elif t == '(': stk.append(t)
-        else: stk.append(toMove(t))
+        >>> toAlgo("U R2 F' 3Rw2 (R U')3 D") -> Algorithm(...)
+        '''
+        tokens = re.findall(ALGORITHM_LEXER_REGEX, algStr)
+        stk = []
+        for t in tokens:
+            if t.startswith(')'):
+                # how many times to repeat inner alg?
+                if t == ')': mul = 1
+                else: 
+                    if (dig := t[1:]).isdigit(): mul = int(dig)
+                    else: raise InvalidAlgorithmError(algStr, f"Invalid multiplier in token: {t}")
+                # pop til '(' and remove it
+                inner = []
+                while stk[-1] != '(':
+                    inner.append(stk.pop())
+                    if not stk: 
+                        raise InvalidAlgorithmError(algStr, "Mismatched parentheses in algorithm string.")
+                stk.pop()
+                # repeat inner alg and push stk
+                innerAlg = Algorithm(inner[::-1])
+                stk.extend((innerAlg * mul).movs)
+            elif t == '(': stk.append(t)
+            else: stk.append(Move.parse(t))
 
-    if '(' in stk:
-        raise InvalidAlgorithmError(algStr, "Unmatched '(' in algorithm string.")
-    
-    return Algorithm(stk)
+        if '(' in stk:
+            raise InvalidAlgorithmError(algStr, "Unmatched '(' in algorithm string.")
+        
+        return Algorithm(stk)

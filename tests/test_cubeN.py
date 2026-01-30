@@ -2,7 +2,7 @@ import pytest
 from copy import deepcopy
 
 from cubingtools.cube import CubeN
-from cubingtools.algorithm import Move, Algorithm, toAlgo
+from cubingtools.algorithm import Move, Algorithm
 
 # Construction Tests
 
@@ -121,7 +121,7 @@ def test_algo_move():
 
 def test_algo_algorithm():
     c = CubeN()
-    alg = toAlgo("R2 U2")
+    alg = Algorithm.parse("R2 U2")
     before = deepcopy(c.state)
     c.algo(alg)
     assert c.state != before
