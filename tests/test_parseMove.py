@@ -34,3 +34,5 @@ def test_move_invalid_token():
         Move.parse("D'2")
     with pytest.raises(InvalidMoveError):
         Move.parse("Sw")
+    with pytest.raises(InvalidMoveError):
+        Move.parse("Sw")

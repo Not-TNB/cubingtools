@@ -12,4 +12,3 @@ class InvalidAlgorithmError(ValueError):
         self.algo = algo
         self.reason = reason
         super().__init__(f"Invalid algorithm: {algo} \nwith reason: {reason}")
-

@@ -92,13 +92,23 @@ class Move:
             case _: raise InvalidMoveError(tok)
 
 class Algorithm:
-    def __init__(self, moves: list[Move] = []):
+    def __init__(self, moves: list[Move] | str | None = None):
         '''
         Represents a sequence of moves (an algorithm) on the cube.
 
         :param moves: A list of `Move` objects representing the sequence of moves.
         '''
-        self.movs = moves
+        match moves:
+            case None: self.movs = []
+            case list(): 
+                if any((not isinstance(m, Move)) for m in moves):
+                    raise TypeError('List must contain only Move objects')
+                self.movs = moves
+            case str():
+                parsed = Algorithm.parse(moves)
+                self.movs = parsed.movs.copy()
+            case _:
+                raise TypeError(f'Cannot construct an Algorithm with type {type(moves)}')
     
     def inverse(self) -> 'Algorithm':
         '''Returns the inverse of the algorithm.'''

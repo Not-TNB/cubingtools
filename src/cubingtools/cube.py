@@ -43,7 +43,7 @@ class CubeN:
         def genFaceMat(col: str) -> list[list[str]]:
             '''Generate a face matrix filled with the given color.'''
             return [[col for _ in range(self.size)] for _ in range(self.size)]
-        stateKs = 'UFRBLD'
+        stateKs = MOVS
         stateVs = list(map(genFaceMat, self.cols))
 
         self.state  = dict(zip(stateKs, deepcopy(stateVs)))
