@@ -44,14 +44,13 @@ class Move:
                 (self.mod if self.mod!='1' else ''))
 
 class Algorithm:
-    def __init__(self, moves: list[Move] | None | str = None):
+    def __init__(self, moves: list[Move] = []):
         '''
         Represents a sequence of moves (an algorithm) on the cube.
 
         :param moves: A list of `Move` objects representing the sequence of moves.
         '''
-        if isinstance(moves, str): self.movs = toAlgo(moves).movs
-        else: self.movs = moves or []
+        self.movs = moves
     
     def inverse(self) -> 'Algorithm':
         '''Returns the inverse of the algorithm.'''

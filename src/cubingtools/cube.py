@@ -27,6 +27,9 @@ class CubeN:
         self.size = n
         self.cols = cols
 
+        # needed for hashing
+        self.colMap = {c:i for i,c in enumerate(self.cols)}
+
         # Generate WCA-type move list
         match n:
             case 2: self.ms = ['R', 'U', 'F'] # same as MOVS[:3]
@@ -140,14 +143,11 @@ class CubeN:
         '''Print's a net of the cube's current state.'''
         return self.__repr__()
     
-    def uTurn(self, n: int=1) -> 'CubeN':
+    def uTurn(self, n: int=1) -> None:
         '''
         Rotates the top `n` layers of the cube clockwise.
 
         :param n: The number of layers to turn along the U face
-
-        :rtype: CubeN
-        :returns: Itself, after the U turn
 
         :raises ValueError: If ``n >= self.size`` or ``n < 1``.
 
@@ -190,7 +190,7 @@ class CubeN:
             for _ in range(2): self.turn(Move(width, mov, '1'))
             return
         
-        uMov = 'U' if width==1 else f'{width}Uw'
+        uMov = 'U' if width == 1 else f'{width}Uw'
 
         match mov[0]:
             case 'x': self.xRot()
@@ -229,7 +229,8 @@ class CubeN:
             for m in alg.movs: self.turn(m)
         else:
             raise TypeError(f"Cannot execute the type {type(alg)} on a cube.")
-    def __rshift__(self, alg) -> 'CubeN': 
+        
+    def __rshift__(self, alg: Move | str | Algorithm) -> 'CubeN': 
         '''
         Same as `algo`, but also returns the cube (good for chaining algorithms).
 
@@ -237,6 +238,10 @@ class CubeN:
 
         >>> myCube = CubeN(3) ; alg1 = "R U R' U'" ; alg2 = "F2 B2"
         >>> myCube >> alg1 >> alg2 -> Cube(...)
+
+        .. Notes::
+        For algorithms/moves `x` and `y` and a cube `c` which `x` and `y` can be executed on,\n
+        `c >> x + y` should have the same effect as `c >> x >> y`
         '''
         self.algo(alg)
         return self
@@ -254,17 +259,25 @@ class CubeN:
 
     def randMove(self) -> Move:
         '''Returns a random WCA-scramble move'''
-        mv = random.choice(self.ms)
+        mov = random.choice(self.ms)
         mod = random.choice(['']+MODS)
-        return toMove(mv + mod)
-    
-    def __hash__(self) -> int: return hash(str(self))
+        return toMove(mov + mod)
+
+    def __hash__(self) -> int:
+        return hash(''.join([
+            ''.join(
+                ''.join(r) for r in self.state[f]
+            ) for f in MOVS
+        ]))
 
     def scramble(self, m: int=0) -> Algorithm:
         '''
         Scrambles the cube with randomized moves.
         
         :param m: The number of moves used to scramble the cube.
+
+        :rtype: Algorithm
+        :returns: The scramble algorithm executed on the cube.
         '''
         if m <= 0: m = 8*self.size
         states = set()
