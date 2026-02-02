@@ -37,3 +37,36 @@ def test_algorithm_inverse_basic():
 def test_algorithm_double_inverse():
     a = Algorithm.parse("U R")
     assert str(-(-a)) == "U R"
+
+def test_identity_and_inverse():
+    """
+    > a + (-a) = id
+    > (-a) + a = id
+    """
+    idn = Algorithm()
+
+    a = Algorithm("R U F2 D' L B")
+    assert idn == Algorithm()
+    assert a + (-a) == idn
+    assert (-a) + a == idn
+
+def test_equivalent_representations():
+    tests = [
+        ("R R", "R2"),
+        ("(R U)2", "R U R U"),
+        ("Rw Rw'", ""),
+        ("(R U R' U')6", ""),
+        ("3Rw 3Rw'", ""),
+    ]
+    for a,b in tests:
+        assert Algorithm(a) == Algorithm(b)
+
+def test_inequality_and_non_commutativity():
+    tests = [
+        ("R U", "U R"),
+        ("R U R'", "R U2 R'"),
+        ("R2 U", "R U2"),
+        ("F R U", "F U R"),
+    ]
+    for a,b in tests:
+        assert Algorithm(a) != Algorithm(b)

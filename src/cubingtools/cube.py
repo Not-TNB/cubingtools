@@ -102,7 +102,7 @@ class CubeN:
         '''
         Print a single face of the cube.
 
-        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to display.
 
         :rtype: str
         :returns: A string representation of the specified face.
@@ -117,25 +117,24 @@ class CubeN:
         '''Print's a net of the cube's current state.'''
         space = ' '*(2*self.size+2)
         bordr = '─'*(2*self.size+1)
+        uTop = f'{space}┌{bordr}┐\n'
+        dBot = f'{space}└{bordr}┘\n'
+        lurdTop = f'┌{bordr}┬{bordr}┬{bordr}┬{bordr}┐\n'
+        lurdBot = f'└{bordr}┼{bordr}┼{bordr}┴{bordr}┘\n'
+        zipLURDFaces = zip(self.state['L'], self.state['F'], self.state['R'], self.state['B'])
+        showRow = lambda row: f'{space}│ {" ".join(row)} │\n'
 
         # print U face
-        out = space + '┌' + bordr + '┐\n'
-        for row in self.state['U']:
-            out += space + '│ ' + ' '.join(row) + ' │\n'
-
+        out = uTop
+        for row in self.state['U']: out += showRow(row)
         # print LFRD faces
-        zipFaces = zip(self.state['L'], self.state['F'], self.state['R'], self.state['B'])
-        out += '┌' + bordr + '┼' + bordr + '┼' + bordr + '┬' + bordr + '┐\n'
-        for l,u,r,d in zipFaces:
-            out += '│ ' + ' '.join(l) + ' │ ' + ' '.join(u) + ' │ ' + ' '.join(r) + ' │ ' + ' '.join(d) + ' │\n'
-        out += '└' + bordr + '┼' + bordr + '┼' + bordr + '┴' + bordr + '┘\n'
-
+        out += lurdTop
+        for l,u,r,d in zipLURDFaces:
+            out += f'│ {" ".join(l)} │ {" ".join(u)} │ {" ".join(r)} │ {" ".join(d)} │\n'
+        out += lurdBot
         # print D face
-        space = ' '*(2*self.size+2)
-        bordr = '─'*(2*self.size+1)
-        for row in self.state['D']:
-            out += space + '│ ' + ' '.join(row) + ' │\n'
-        out += space + '└' + bordr + '┘'
+        for row in self.state['D']: out += showRow(row)
+        out += dBot
 
         return out
 
