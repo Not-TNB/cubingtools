@@ -27,9 +27,6 @@ class CubeN:
         self.size = n
         self.cols = cols
 
-        # needed for hashing
-        self.colMap = {c:i for i,c in enumerate(self.cols)}
-
         # Generate WCA-type move list
         match n:
             case 2: self.ms = ['R', 'U', 'F'] # same as MOVS[:3]
@@ -119,7 +116,7 @@ class CubeN:
         bordr = '─'*(2*self.size+1)
         uTop = f'{space}┌{bordr}┐\n'
         dBot = f'{space}└{bordr}┘\n'
-        lurdTop = f'┌{bordr}┬{bordr}┬{bordr}┬{bordr}┐\n'
+        lurdTop = f'┌{bordr}┼{bordr}┼{bordr}┬{bordr}┐\n'
         lurdBot = f'└{bordr}┼{bordr}┼{bordr}┴{bordr}┘\n'
         zipLURDFaces = zip(self.state['L'], self.state['F'], self.state['R'], self.state['B'])
         showRow = lambda row: f'{space}│ {" ".join(row)} │\n'
@@ -264,11 +261,8 @@ class CubeN:
         return Move.parse(mov + mod)
 
     def __hash__(self) -> int:
-        return hash(''.join([
-            ''.join(
-                ''.join(r) for r in self.state[f]
-            ) for f in MOVS
-        ]))
+        '''Returns a hash value representing the cube's current state.'''
+        return hash(''.join([''.join(''.join(r) for r in self.state[f]) for f in MOVS]))
 
     def scramble(self, m: int=0) -> Algorithm:
         '''
@@ -297,4 +291,4 @@ class CubeN:
             states.add(self)
             algo += mv
         return algo
-    
+     
