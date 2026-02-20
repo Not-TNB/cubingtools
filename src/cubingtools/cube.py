@@ -14,7 +14,7 @@ class CubeN:
         Initializes a solved NxNxN Rubik's Cube, defaulting to the classic 3x3 
         and standard color scheme (white, green, red, blue, orange, yellow).
 
-        :param n: Size of the cube (n x n x n)
+        :param n: Size of the cube (NxNxN)
         :param cols: Symbol (color) on each face of the cube (In the order UFRBLD)
 
         >>> myCube  = CubeN()                   # 3x3 cube with standard color scheme (wgrboy)
@@ -46,67 +46,58 @@ class CubeN:
         self.state  = dict(zip(stateKs, deepcopy(stateVs)))
         self.solved = deepcopy(self.state)
 
-    def validateFace(func): # will introduce a face validation check
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            # Prefer an instance attribute 'face' if present, otherwise fall back to the
-            # first positional argument or a 'face' keyword argument.
-            face = getattr(self, 'face', None)
-            if face is None:
-                if args: face = args[0]
-                else: face = kwargs.get('face', None)
-            if not isinstance(face, str) or face not in 'UFRBLD' or len(face) != 1:
-                raise ValueError("Face must be one of 'U', 'F', 'R', 'B', 'L', 'D'")
-            return func(self, *args, **kwargs)
-        return wrapper
+    def __validateFace(self, face: str):
+        if not isinstance(face, str) or (face not in MOVS) or (len(face) != 1):
+            raise ValueError(f"Face must be one of {MOVS}")
 
-    @validateFace
     def rotFC(self, face: str) -> list[list[str]]:
-        '''
+        f'''
         Returns the clockwise roation of a single face.
 
-        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+        :param face: The face to rotate.
 
         :rtype: [[str]]
         :returns: The rotated face as a 2D list.
         '''
+        self.__validateFace(face)
         return [list(row) for row in zip(*self.state[face][::-1])]
-    @validateFace
     def rotFA(self, face: str) -> list[list[str]]:
         '''
         Returns the anti-clockwise roation of a single face.
 
-        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+        :param face: The face to rotate.
 
         :rtype: [[str]]
         :returns: The rotated face as a 2D list.
         ''' 
+        self.__validateFace(face)
         return list(list(x) for x in zip(*self.state[face]))[::-1]
-    @validateFace
     def rotF2(self, face: str) -> list[list[str]]:
         '''
         Returns the 180 degree roation of a single face.
 
-        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to rotate.
+        :param face: The face to rotate.
 
         :rtype: [[str]]
         :returns: The rotated face as a 2D list.
         '''
+        self.__validateFace(face)
         return [row[::-1] for row in self.state[face][::-1]]
     
-    @validateFace
     def showFace(self, face: str) -> str:
         '''
         Print a single face of the cube.
 
-        :param face: One of 'U', 'F', 'R', 'B', 'L', 'D' representing the face to display.
+        :param face: The face to display.
 
         :rtype: str
         :returns: A string representation of the specified face.
-        '''
-        out  = '┌' + '──'*(self.size-1) + '───┐\n'
-        out += '\n'.join(['│ ' + ' '.join(row) + ' │' for row in self.state[face]])
-        out += '\n└' + '──'*(self.size-1) + '───┘'
+        ''' 
+        self.__validateFace(face)
+        bordr = "──"*(self.size-1)
+        out  = f'┌{bordr}───┐\n'
+        out += '\n'.join([f'│ {" ".join(row)} │' for row in self.state[face]])
+        out += f'\n└{bordr}───┘'
 
         return out
         
@@ -277,7 +268,7 @@ class CubeN:
         states = set()
         algo = Algorithm()
         lastBaseMov = None
-        while len(algo)<m:
+        while len(algo) < m:
             mv = self.randMove()
 
             if lastBaseMov == mv.mov: continue

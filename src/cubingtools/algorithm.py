@@ -115,6 +115,10 @@ class Algorithm:
         else: self.degree = 2
     
     def __eq__(self, other: 'Algorithm'):
+        '''
+        Checks if two algorithms are equivalent by applying one then the 
+        inverse of the other to a solved cube and checking if it is still solved.
+        '''
         from cubingtools.cube import CubeN
         return (CubeN(self.degree) >> self >> -other).isSolved()
     
@@ -182,7 +186,7 @@ class Algorithm:
                 while stk[-1] != '(':
                     inner.append(stk.pop())
                     if not stk: 
-                        raise InvalidAlgorithmError(algStr, "Mismatched parentheses in algorithm string.")
+                        raise InvalidAlgorithmError(algStr, "Unmatched ')' in algorithm string.")
                 stk.pop()
                 # repeat inner alg and push stk
                 innerAlg = Algorithm(inner[::-1])
