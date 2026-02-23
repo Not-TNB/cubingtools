@@ -2,7 +2,7 @@ import pytest
 from copy import deepcopy
 
 from cubingtools.cube import CubeN
-from cubingtools.algorithm import Move, Algorithm
+from cubingtools.algorithm import Move, Algorithm, parseAlgo
 
 # Construction Tests
 
@@ -31,16 +31,16 @@ def test_rotations_are_inverse():
     orig = deepcopy(c.state[face])
 
     # rotate clockwise then anticlockwise
-    cw = c.rotFC(face)
+    cw = c._rtFC(face)
     c.state[face] = cw
-    acw = c.rotFA(face)
+    acw = c._rtFA(face)
     assert acw == orig
 
     # 180 twice = original
     c.state[face] = deepcopy(orig)
-    r2 = c.rotF2(face)
+    r2 = c._rtF2(face)
     c.state[face] = r2
-    assert c.rotF2(face) == orig
+    assert c._rtF2(face) == orig
 
 def test_show_face_returns_string():
     c = CubeN()
@@ -59,14 +59,12 @@ def test_x_rotation_preserves_colors():
         vals = {x for row in c.state[f] for x in row}
         assert len(vals) == 1
 
-
 def test_y_rotation_moves_faces():
     c = CubeN()
     c >> "R"
     top_before = deepcopy(c.state["U"])
     c.yRot()
     assert c.state["U"] != top_before  # U rotated
-
 
 def test_z_rotation_moves_faces():
     c = CubeN()
@@ -121,7 +119,7 @@ def test_algo_move():
 
 def test_algo_algorithm():
     c = CubeN()
-    alg = Algorithm.parse("R2 U2")
+    alg = parseAlgo("R2 U2")
     before = deepcopy(c.state)
     c.algo(alg)
     assert c.state != before
@@ -147,16 +145,26 @@ def test_reset():
     c.reset()
     assert c.isSolved()
 
-# Random Moves & Scrambling
-
-def test_rand_move_returns_move():
+def test_invalid_application():
     c = CubeN()
-    mv = c.randMove()
-    assert isinstance(mv, Move)
+    with pytest.raises(TypeError):
+        c >> 8
 
-def test_scramble_length_and_not_solved():
-    c = CubeN(67)
-    alg = c.scramble(100)
-    assert isinstance(alg, Algorithm)
-    assert len(alg.movs) == 100
-    assert not c.isSolved()
+def test_invalid_face():
+    c = CubeN()
+    with pytest.raises(ValueError):
+        c._rtFC("X")
+
+def test_MES_and_wide():
+    for i in range(3,20):
+        c = CubeN(i)
+        a = Algorithm("M2 E S' u d2 (l f)4 r b'")
+        assert (c >> a >> -a).isSolved()
+
+# Cube printing
+# the look of printing should be tested manually
+
+def test_repr_eq_str():
+    for i in range(2, 100):
+        c = CubeN(i)
+        assert repr(c) == str(c)

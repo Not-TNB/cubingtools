@@ -1,11 +1,12 @@
-'''
+"""
 Contains movesets and other utility constants
-'''
+"""
 
 # MOVESET
 MOVS     = ['U', 'F', 'R', 'B', 'L', 'D']
-W_MOVS   = [x+'w' for x in MOVS]
-T_MOVS   = [x.lower() for x in MOVS]
+MOVS2    = ['U', 'F', 'R']                      # MOVS[:3]
+W_MOVS   = ['Uw', 'Fw', 'Rw', 'Bw', 'Lw', 'Dw'] # [x+'w' for x in MOVS]
+T_MOVS   = ['u', 'f', 'r', 'b', 'l', 'd']       # [x.lower() for x in MOVS]
 ROTS     = ['x', 'y', 'z']
 MIDS     = ['M', 'E', 'S']
 MODS     = ["'", '2']

@@ -24,3 +24,10 @@ def test_wider_move():
     m = Move(2025, 'Fw', '2')
     assert m.width == 2025
     assert str(m) == "2025Fw2"
+
+def test_move_rep():
+    m = Move(1, 'R', "'")
+    assert repr(m) == 'Move(width=1, mov="R", mod="\'")'
+
+    m = Move(2025, 'Fw', '2')
+    assert repr(m) == 'Move(width=2025, mov="Fw", mod="2")'

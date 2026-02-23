@@ -1,9 +1,8 @@
-'''
+"""
 Methods related to the validation of a cube state, ensuring the internal representation
 of the cube state is reachable from a solved state with valid moves.
-'''
+"""
 
-from cubingtools.constants import *
 from cubingtools.cube import *
 from collections import Counter
 
