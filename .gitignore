@@ -1,12 +1,18 @@
-__pycache__
-.pytest_cache
-*.pyc
-build
-dist
+# IDEs
 .idea/
-*.egg-info
-/.tox
-.eggs/
-/venv/
+.vscode/
+
+# Python environment
 .venv/
-.vscode
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# pytest
+.pytest_cache/
+
+# Packaging
+*.egg-info/
+dist/
+build/
