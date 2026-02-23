@@ -8,10 +8,6 @@ from .modifier import _Mod
 import random
 from copy import deepcopy
 
-def _validateFace(face: str):
-    if not isinstance(face, str) or (face not in MOVS) or (len(face) != 1):
-        raise ValueError(f"Face must be one of {MOVS}")
-
 class CubeN:
     def __init__(self, n: int=3, cols: str='wgrboy'):
         """
@@ -50,14 +46,19 @@ class CubeN:
         self.state  = dict(zip(stateKs, deepcopy(stateVs)))
         self.solved = deepcopy(self.state)
 
+    @staticmethod
+    def _validateFace(face: str):
+        if not isinstance(face, str) or (face not in MOVS) or (len(face) != 1):
+            raise ValueError(f"Face must be one of {MOVS}")
+
     def _rtFC(self, face: str) -> list[list[str]]:
-        _validateFace(face)
+        self._validateFace(face)
         return [list(row) for row in zip(*self.state[face][::-1])]
     def _rtFA(self, face: str) -> list[list[str]]:
-        _validateFace(face)
+        self._validateFace(face)
         return list(list(x) for x in zip(*self.state[face]))[::-1]
     def _rtF2(self, face: str) -> list[list[str]]:
-        _validateFace(face)
+        self._validateFace(face)
         return [row[::-1] for row in self.state[face][::-1]]
     
     def showFace(self, face: str) -> str:
@@ -69,7 +70,7 @@ class CubeN:
         :rtype: str
         :returns: A string representation of the specified face.
         """
-        _validateFace(face)
+        self._validateFace(face)
         bordr = "──"*(self.size-1)
         out  = f'┌{bordr}───┐\n'
         out += '\n'.join([f'│ {" ".join(row)} │' for row in self.state[face]])

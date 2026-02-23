@@ -11,7 +11,7 @@ from .constants import *
 from .error import *
 
 class Move:
-    def __init__(self, width: int=1, mov: str='U', mod: str | _Mod='1'):
+    def __init__(self, width: int = 1, mov: str = 'U', mod: str | _Mod = '1'):
         """
         Initializes a `Move` object a representing single move on a cube.
 
@@ -19,31 +19,27 @@ class Move:
         :param mov: The move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
         :param mod: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
         """
-        if mov not in ALL_MOVS            : raise InvalidMoveError(self)
-        if mov in W_MOVS and width <= 1   : raise InvalidMoveError(self)
+        if mov not in ALL_MOVS: raise InvalidMoveError(self)
+        if mov in W_MOVS and width <= 1: raise InvalidMoveError(self)
 
         self.mov = mov
         self.width = width
         self.mod = mod if isinstance(mod, _Mod) else _Mod.parse(mod)
-    
+
     def __repr__(self):
         return f'Move({self.width}, {self.mov}, {self.mod})'
 
     def __neg__(self) -> 'Move':
         """Returns the inverse of the move."""
-        match self.mod:
-            case _Mod.CW   : newMod = _Mod.CCW
-            case _Mod.HALF : newMod = _Mod.HALF
-            case _Mod.CCW  : newMod = _Mod.CW
-        return Move(self.width, self.mov, newMod)
-    
+        return Move(self.width, self.mov, -self.mod)
+
     def __str__(self) -> str:
         """Returns the string representation of the move."""
         lay = str(self.width) if self.width > 2 else ''
         w = 'w' if self.width >= 2 else ''
         return (lay +
-                 self.mov + w +
-                (str(self.mod) if self.mod!=_Mod.CW else ''))
+                self.mov + w +
+                (str(self.mod) if self.mod != _Mod.CW else ''))
 
     @staticmethod
     def parse(tok: str) -> Move:
@@ -97,6 +93,7 @@ class Move:
             case _:
                 raise InvalidMoveError(tok)
 
+
 class Algorithm:
     def __init__(self, moves: list[Move] | str | None = None):
         """
@@ -107,8 +104,9 @@ class Algorithm:
         self.movs = None
 
         match moves:
-            case None: self.movs = []
-            case list(): 
+            case None:
+                self.movs = []
+            case list():
                 if any((not isinstance(m, Move)) for m in moves):
                     raise TypeError('List must contain only Move objects')
                 self.movs = moves
@@ -117,11 +115,13 @@ class Algorithm:
                 self.movs = parsed.movs.copy()
             case _:
                 raise TypeError(f'Cannot construct an Algorithm with type {type(moves)}')
-    
+
         # for what N can this be executed on an NxN cube?
-        if self.movs: self.degree = max([m.width for m in self.movs]) * 2
-        else: self.degree = 2
-    
+        if self.movs:
+            self.degree = max([m.width for m in self.movs]) * 2
+        else:
+            self.degree = 2
+
     def __eq__(self, other: 'Algorithm'):
         """
         Checks if two algorithms are equivalent by applying one then the
@@ -129,44 +129,46 @@ class Algorithm:
         """
         from cubingtools.cube import CubeN
         return (CubeN(self.degree) >> self >> -other).isSolved()
-    
+
     def inverse(self) -> 'Algorithm':
         """Returns the inverse of the algorithm."""
         return Algorithm([-move for move in self.movs[::-1]])
-    
+
     def __neg__(self) -> 'Algorithm':
         """Returns the inverse of the algorithm."""
         return self.inverse()
-    
+
     def __repr__(self):
         padLen = len(str(len(self) - 1))
         out = list(map(
-                operator.add,
-                [f"{i:>{padLen}}: " for i in range(1,len(self)+1)],
-                [repr(move) for move in self.movs]))
+            operator.add,
+            [f"{i:>{padLen}}: " for i in range(1, len(self) + 1)],
+            [repr(move) for move in self.movs]))
         return '\n'.join(out)
-    
+
     def __str__(self) -> str:
         """Returns the string representation of the algorithm."""
         return ' '.join([str(move) for move in self.movs])
 
     def __add__(self, other: 'Move | str | Algorithm') -> 'Algorithm':
         """
-        Concatenates two algorithms.
-        Accepts addition of an algorithm with one of the following types:
-        Move, Algorithm, String, List[Move]
+        Concatenates two algorithms and simplifies the output.
+
+        :param other: The other algorithm to concatenate, which can also be in `str` or `Move` form.
         """
         match other:
-            case Move()      : return Algorithm(self.movs + [other])
-            case str()       : return Algorithm(self.movs + Algorithm.parse(other).movs)
-            case Algorithm() : return Algorithm(self.movs + other.movs)
-            case _ : raise TypeError(f'Cannot add Algorithm with type {type(other)}.')
-    
-    def __mul__(self, times:int) -> 'Algorithm':
-        """Repeats the algorithm a specified number of times."""
+            case Move()      : newMoves = self.movs + [other]
+            case str()       : newMoves = self.movs + Algorithm.parse(other).movs
+            case Algorithm() : newMoves = self.movs + other.movs
+            case _:
+                raise TypeError(f'Cannot add Algorithm with type {type(other)}.')
+        return simplified(Algorithm(newMoves))
+
+    def __mul__(self, times: int) -> 'Algorithm':
+        """Repeats the algorithm a specified number of times and simplifies the output."""
         if times < 1: raise ValueError("Times must be a positive integer.")
-        return Algorithm(self.movs * times)
-    
+        return simplified(Algorithm(self.movs * times))
+
     def __len__(self) -> int:
         """Returns the number of moves making up the algorithm."""
         return len(self.movs)
@@ -191,10 +193,8 @@ class Algorithm:
                 if t == ')':
                     mul = 1
                 else:
-                    mul = int(t[1:])
-                    if mul <= 0:
+                    if (mul := int(t[1:])) <= 0:
                         raise InvalidAlgorithmError("Invalid multiplier in token:", t)
-
                 # pop til '(' and remove it
                 inner = []
                 while stk[-1] != '(':
@@ -214,3 +214,36 @@ class Algorithm:
             raise InvalidAlgorithmError("Unmatched '(' in algorithm string.")
 
         return Algorithm(stk)
+
+    def simplify(self):
+        """Simplifies the algorithm in place."""
+        self.movs = simplified(self).movs
+
+
+def simplified(alg: Algorithm) -> Algorithm:
+    """
+    Returns the naive simplification of a given algorithm.
+
+    :param alg: The ``Algorithm`` to simplify.
+
+    :rtype: Algorithm
+    :returns: The simplified algorithm.
+
+    >>> simplified(Algorithm("F U R' U' U R2")) -> Algorithm("F U R")
+
+    .. Notes::
+    Note that for all ``a:Algorithm`` we have ``len(a) >= len(simplified(a))`` and ``a == simplified(a)``.
+    """
+    stk: list[Move] = []
+
+    for move in alg.movs:
+        if stk:
+            top = stk[-1]
+            if (top.mov == move.mov) and (top.width == move.width):
+                preTotal = (top.mod + move.mod) % 4
+                total = -1 if preTotal == 3 else preTotal
+                stk.pop()
+                if total != 0: stk.append(Move(move.width, move.mov, total))
+                continue
+        stk.append(move)
+    return Algorithm(stk)

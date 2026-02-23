@@ -6,6 +6,7 @@ def test_rand_move_returns_move():
     c = CubeN()
     mv = c.randMove()
     assert isinstance(mv, Move)
+    assert c >> mv
 
 def test_scramble_length_and_not_solved():
     c = CubeN(67)

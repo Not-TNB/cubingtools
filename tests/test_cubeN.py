@@ -4,8 +4,6 @@ from copy import deepcopy
 from cubingtools.cube import CubeN
 from cubingtools.algorithm import Move, Algorithm
 
-# Construction Tests
-
 def test_construct_default_cube():
     c = CubeN()
     assert c.size == 3
@@ -21,8 +19,6 @@ def test_invalid_colors():
         CubeN(3, "abc")      # too short
     with pytest.raises(ValueError):
         CubeN(3, "abcdea")   # not unique
-
-# Face Rotation Tests
 
 def test_rotations_are_inverse():
     c = CubeN()
@@ -48,8 +44,6 @@ def test_show_face_returns_string():
     assert isinstance(out, str)
     assert c.cols[0] in out  # "w" normally
 
-# Whole Cube Rotations
-
 def test_x_rotation_preserves_colors():
     c = CubeN()
     before = deepcopy(c.state)
@@ -71,8 +65,6 @@ def test_z_rotation_moves_faces():
     up_before = deepcopy(c.state["U"])
     c.zRot()
     assert c.state["U"] != up_before
-
-# Turns (U, R, F, etc.)
 
 def test_u_turn_works():
     c = CubeN(3)
@@ -124,15 +116,11 @@ def test_algo_algorithm():
     c.algo(alg)
     assert c.state != before
 
-# __rshift__ (>>) operator
-
 def test_rshift_operator():
     c = CubeN()
     before = deepcopy(c.state)
     c >> "R U"
     assert c.state != before
-
-# Solved state & reset
 
 def test_is_solved_on_start():
     c = CubeN()

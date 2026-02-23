@@ -15,7 +15,7 @@ def test_algorithm_add_move():
     assert str(r) == "U R"
 
 def test_algorithm_add_string():
-    a = Algorithm([Move(1, "U", "1")])
+    a = Algorithm("U")
     r = a + "R2 F'"
     assert str(r) == "U R2 F'"
 
