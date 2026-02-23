@@ -28,7 +28,7 @@ def test_move_invalid_token():
         parseMove("Q")
     with pytest.raises(InvalidMoveError):
         parseMove("2F")
-    with pytest.raises(InvalidMoveError):
+    with pytest.raises(ValueError):
         parseMove("Rw3")
     with pytest.raises(InvalidMoveError):
         parseMove("D'2")

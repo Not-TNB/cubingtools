@@ -159,7 +159,8 @@ def test_MES_and_wide():
     for i in range(3,20):
         c = CubeN(i)
         a = Algorithm("M2 E S' u d2 (l f)4 r b'")
-        assert (c >> a >> -a).isSolved()
+        c >> a >> -a
+        assert c.isSolved()
 
 # Cube printing
 # the look of printing should be tested manually

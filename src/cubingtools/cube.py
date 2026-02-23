@@ -2,8 +2,9 @@
 Contains the `CubeN` class working with NxN Rubik's cubes for N>=2
 """
 
-from cubingtools.algorithm import Move, Algorithm, parseMove, parseAlgo
-from cubingtools.constants import *
+from .algorithm import Move, Algorithm, parseMove, parseAlgo
+from .constants import *
+from .modifier import _Mod
 import random
 from copy import deepcopy
 
@@ -145,10 +146,10 @@ class CubeN:
         width, mov, mod = move.width, move.mov, move.mod
 
         match mod:
-            case '\'': 
+            case _Mod.CCW:
                 for _ in range(3): self.turn(Move(width, mov, '1'))
                 return
-            case '2': 
+            case _Mod.HALF:
                 for _ in range(2): self.turn(Move(width, mov, '1'))
                 return
         
@@ -203,7 +204,7 @@ class CubeN:
         :param alg: The `Move` or `Algorithm` to execute on the cube.
 
         >>> myCube = CubeN(3) ; alg1 = "R U R' U'" ; alg2 = "F2 B2"
-        >>> myCube >> alg1 >> alg2 -> Cube(...)
+        >>> myCube >> alg1 >> alg2 -> CubeN(...)
 
         .. Notes::
         For algorithms/moves `x` and `y` and a cube `c` which `x` and `y` can be executed on,\n
@@ -226,8 +227,8 @@ class CubeN:
     def randMove(self) -> Move:
         """Returns a random scramble move"""
         mov = random.choice(self.ms)
-        mod = random.choice(['']+MODS)
-        return parseMove(mov + mod)
+        mod = random.choice(list(_Mod))
+        return parseMove(mov + str(mod))
 
     def __hash__(self) -> int:
         return hash(''.join([''.join(''.join(r) for r in self.state[f]) for f in MOVS]))

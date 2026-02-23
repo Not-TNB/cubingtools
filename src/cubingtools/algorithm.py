@@ -6,8 +6,9 @@ which can be performed on cubes.
 from __future__ import annotations
 import operator
 import re
-from cubingtools.constants import *
-from cubingtools.error import *
+from .modifier import _Mod
+from .constants import *
+from .error import *
 
 class Move:
     def __init__(self, width: int=1, mov: str='U', mod: str='1'):
@@ -20,29 +21,27 @@ class Move:
         """
         if mov not in ALL_MOVS            : raise InvalidMoveError(self)
         if mov in W_MOVS and width <= 1   : raise InvalidMoveError(self)
-        if mod not in MODS and mod != '1' : raise InvalidMoveError(self)
 
         self.mov = mov
         self.width = width
-        self.mod = mod
+        self.mod = _Mod.parse(mod)
     
     def __repr__(self):
         return f'Move(width={self.width}, mov="{self.mov}", mod="{self.mod}")'
-    
+
     def __neg__(self) -> 'Move':
         """Returns the inverse of the move."""
-        newMod = '1'
         match self.mod:
-            case '2': newMod = '2'
-            case '1': newMod = "'"
-            case "'": newMod = '1'
+            case _Mod.CW   : newMod = _Mod.CCW
+            case _Mod.HALF : newMod = _Mod.HALF
+            case _Mod.CCW  : newMod = _Mod.CW
         return Move(self.width, self.mov, newMod)
     
     def __str__(self) -> str:
         """Returns the string representation of the move."""
         return ((str(self.width) if self.width>2 else '') +
                  self.mov +
-                (self.mod if self.mod!='1' else ''))
+                (str(self.mod) if self.mod!=_Mod.CW else ''))
 
 class Algorithm:
     def __init__(self, moves: list[Move] | str | None = None):
@@ -133,15 +132,14 @@ def parseMove(tok: str) -> Move:
     def throw(): raise InvalidMoveError(f"Invalid move: {tok}")
 
     # helper parsing/guarding functions; raises invalid moves if applicable.
+    def guardList(x, xs):
+        if x not in xs: throw()
     def parseWidth(dig):
         if not dig.isdigit()   : throw()
         if (d := int(dig)) < 2 : throw()
         return d
-    def guardList(x, xs):
-        if x not in xs: throw()
     guardAllMov  = lambda m: guardList(m, ALL_MOVS)
     guardWideMov = lambda m: guardList(m, MOVS)
-    guardMod     = lambda m: guardList(m, MODS)
 
     tokens = [t for t in re.findall(MOVE_LEXER_REGEX, tok) if t != '']
 
@@ -154,11 +152,9 @@ def parseMove(tok: str) -> Move:
             return Move(2, mov+'w', '1')
         case [mov,mod]:
             guardAllMov(mov)
-            guardMod(mod)
             return Move(1, mov, mod)
         case [mov,'w',mod]:
             guardWideMov(mov)
-            guardMod(mod)
             return Move(2, mov+'w', mod) # ex. Rw === 2Rw
         case [width,mov,'w']:
             width = parseWidth(width)
@@ -167,7 +163,6 @@ def parseMove(tok: str) -> Move:
         case [width,mov,'w',mod]:
             width = parseWidth(width)
             guardWideMov(mov)
-            guardMod(mod)
             return Move(width, mov+'w', mod)
         case _: raise InvalidMoveError(tok)
 
