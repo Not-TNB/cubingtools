@@ -20,22 +20,22 @@ def test_algorithm_add_string():
     assert str(r) == "U R2 F'"
 
 def test_algorithm_add_algorithm():
-    a1 = parseAlgo("U R")
-    a2 = parseAlgo("F2 U'")
+    a1 = Algorithm.parse("U R")
+    a2 = Algorithm.parse("F2 U'")
     a3 = a1 + a2
     assert str(a3) == "U R F2 U'"
 
 def test_algorithm_repeat():
-    a = parseAlgo("R U")
+    a = Algorithm.parse("R U")
     r = a * 3
     assert str(r) == "R U R U R U"
 
 def test_algorithm_inverse_basic():
-    a = parseAlgo("U R' F2")
+    a = Algorithm.parse("U R' F2")
     assert str(a.inverse()) == "F2 R U'"
 
 def test_algorithm_double_inverse():
-    a = parseAlgo("U R")
+    a = Algorithm.parse("U R")
     assert str(-(-a)) == "U R"
 
 def test_identity_and_inverse():
@@ -77,6 +77,6 @@ def test_invalid_addition():
 
 def test_invalid_algorithm_constructor():
     with pytest.raises(TypeError):
-        a = Algorithm([parseMove("U"), 7])
+        a = Algorithm([Move.parse("U"), 7])
     with pytest.raises(TypeError):
         a = Algorithm(8936384)

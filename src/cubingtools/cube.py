@@ -2,7 +2,7 @@
 Contains the `CubeN` class working with NxN Rubik's cubes for N>=2
 """
 
-from .algorithm import Move, Algorithm, parseMove, parseAlgo
+from .algorithm import Move, Algorithm
 from .constants import *
 from .modifier import _Mod
 import random
@@ -191,7 +191,7 @@ class CubeN:
         """
         match alg:
             case Move(): self.turn(alg)
-            case str() : self.algo(parseAlgo(alg))
+            case str() : self.algo(Algorithm.parse(alg))
             case Algorithm(): 
                 for m in alg.movs: self.turn(m)
             case _:
@@ -228,7 +228,7 @@ class CubeN:
         """Returns a random scramble move"""
         mov = random.choice(self.ms)
         mod = random.choice(list(_Mod))
-        return parseMove(mov + str(mod))
+        return Move.parse(mov + str(mod))
 
     def __hash__(self) -> int:
         return hash(''.join([''.join(''.join(r) for r in self.state[f]) for f in MOVS]))

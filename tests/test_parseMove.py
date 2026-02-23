@@ -3,36 +3,36 @@ from cubingtools.algorithm import *
 from cubingtools.error import *
 
 def test_move_simple():
-    m = parseMove("U")
+    m = Move.parse("U")
     assert isinstance(m, Move)
     assert str(m) == "U"
 
 def test_move_with_mod():
-    assert str(parseMove("R'")) == "R'"
-    assert str(parseMove("F2")) == "F2"
+    assert str(Move.parse("R'")) == "R'"
+    assert str(Move.parse("F2")) == "F2"
 
 def test_move_wide_no_mod():
-    assert str(parseMove("Rw")) == "Rw"
+    assert str(Move.parse("Rw")) == "Rw"
 
 def test_move_wide_with_mod():
-    assert str(parseMove("Rw'")) == "Rw'"
+    assert str(Move.parse("Rw'")) == "Rw'"
 
 def test_move_explicit_width():
-    assert str(parseMove("3Fw")) == "3Fw"
+    assert str(Move.parse("3Fw")) == "3Fw"
 
 def test_move_width_and_mod():
-    assert str(parseMove("13Fw2")) == "13Fw2"
+    assert str(Move.parse("13Fw2")) == "13Fw2"
 
 def test_move_invalid_token():
     with pytest.raises(InvalidMoveError):
-        parseMove("Q")
+        Move.parse("Q")
     with pytest.raises(InvalidMoveError):
-        parseMove("2F")
+        Move.parse("2F")
     with pytest.raises(ValueError):
-        parseMove("Rw3")
+        Move.parse("Rw3")
     with pytest.raises(InvalidMoveError):
-        parseMove("D'2")
+        Move.parse("D'2")
     with pytest.raises(InvalidMoveError):
-        parseMove("Sw")
+        Move.parse("Sw")
     with pytest.raises(InvalidMoveError):
-        parseMove("Sw")
+        Move.parse("Sw")
