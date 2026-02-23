@@ -11,7 +11,7 @@ from .constants import *
 from .error import *
 
 class Move:
-    def __init__(self, width: int=1, mov: str='U', mod: str='1'):
+    def __init__(self, width: int=1, mov: str='U', mod: str | _Mod='1'):
         """
         Initializes a `Move` object a representing single move on a cube.
 
@@ -24,7 +24,7 @@ class Move:
 
         self.mov = mov
         self.width = width
-        self.mod = _Mod.parse(mod)
+        self.mod = mod if isinstance(mod, _Mod) else _Mod.parse(mod)
     
     def __repr__(self):
         return f'Move(width={self.width}, mov="{self.mov}", mod="{self.mod}")'
@@ -39,8 +39,10 @@ class Move:
     
     def __str__(self) -> str:
         """Returns the string representation of the move."""
-        return ((str(self.width) if self.width>2 else '') +
-                 self.mov +
+        lay = str(self.width) if self.width > 2 else ''
+        w = 'w' if self.width >= 2 else ''
+        return (lay +
+                 self.mov + w +
                 (str(self.mod) if self.mod!=_Mod.CW else ''))
 
 class Algorithm:
@@ -149,21 +151,21 @@ def parseMove(tok: str) -> Move:
             return Move(1, t, '1')
         case [mov,'w']:
             guardWideMov(mov)
-            return Move(2, mov+'w', '1')
+            return Move(2, mov, '1')
         case [mov,mod]:
             guardAllMov(mov)
             return Move(1, mov, mod)
         case [mov,'w',mod]:
             guardWideMov(mov)
-            return Move(2, mov+'w', mod) # ex. Rw === 2Rw
+            return Move(2, mov, mod) # ex. Rw === 2Rw
         case [width,mov,'w']:
             width = parseWidth(width)
             guardWideMov(mov)
-            return Move(width, mov+'w', '1')
+            return Move(width, mov, '1')
         case [width,mov,'w',mod]:
             width = parseWidth(width)
             guardWideMov(mov)
-            return Move(width, mov+'w', mod)
+            return Move(width, mov, mod)
         case _: raise InvalidMoveError(tok)
 
 def parseAlgo(algStr: str) -> Algorithm:
@@ -198,10 +200,8 @@ def parseAlgo(algStr: str) -> Algorithm:
             # repeat inner alg and push stk
             innerAlg = Algorithm(inner[::-1])
             stk.extend((innerAlg * mul).movs)
-        elif t == '(':
-            stk.append(t)
-        else:
-            stk.append(parseMove(t))
+        elif t == '(': stk.append(t)
+        else: stk.append(parseMove(t))
 
     if '(' in stk:
         raise InvalidAlgorithmError("Unmatched '(' in algorithm string.")
