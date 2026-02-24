@@ -18,6 +18,8 @@ def test_algorithm_add_string():
     a = Algorithm("U")
     r = a + "R2 F'"
     assert str(r) == "U R2 F'"
+    r = "R2 F'" + a
+    assert str(r) == "R2 F' U"
 
 def test_algorithm_add_algorithm():
     a1 = Algorithm.parse("U R")

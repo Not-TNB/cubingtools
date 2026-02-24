@@ -10,6 +10,7 @@ from .modifier import _Mod
 from .constants import *
 from .error import *
 
+
 class Move:
     def __init__(self, width: int = 1, mov: str = 'U', mod: str | _Mod = '1'):
         """
@@ -51,7 +52,9 @@ class Move:
         :rtype: Move
         :returns: A `Move` object corresponding to the token.
         """
-        def throw(): raise InvalidMoveError(f"Invalid move: {tok}")
+
+        def throw():
+            raise InvalidMoveError(f"Invalid move: {tok}")
 
         # helper parsing/guarding functions; raises invalid moves if applicable.
         def guardList(x, xs):
@@ -93,11 +96,11 @@ class Move:
 
 
 class Algorithm:
-    def __init__(self, moves: list[Move] | str | None = None):
+    def __init__(self, moves: Move | list[Move] | str | None = None):
         """
         Represents a sequence of moves (an algorithm) on the cube.
 
-        :param moves: A list of `Move` objects representing the sequence of moves.
+        :param moves: ``None`` (cast to empty algorithms), ``Move`` (cast to a single-move algorithm), ``list[Move]`` or ``str`` (parsed using ``Algorithm.parse()``)
         """
         self._movs = None
 
@@ -111,6 +114,8 @@ class Algorithm:
             case str():
                 parsed = Algorithm.parse(moves)
                 self._movs = parsed._movs.copy()
+            case Move():
+                self._movs = [moves]
             case _:
                 raise TypeError(f'Cannot construct an Algorithm with type {type(moves)}')
 
@@ -148,22 +153,44 @@ class Algorithm:
         """Returns the string representation of the algorithm."""
         return ' '.join([str(move) for move in self._movs])
 
+    @staticmethod
+    def _coerceToAlgo(other: 'Move | str | Algorithm') -> Algorithm:
+        """Helper function for Algorithm binary operators to coerce the other operand into an Algorithm."""
+        match other:
+            case Move()      : return Algorithm([other])
+            case str()       : return Algorithm(other)
+            case Algorithm() : return other
+            case _:
+                raise TypeError(f'Cannot combine Algorithm with type {type(other)}.')
+
     def __add__(self, other: 'Move | str | Algorithm') -> 'Algorithm':
         """
         Concatenates two algorithms and simplifies the output.
 
-        :param other: The other algorithm to concatenate, which can also be in `str` or `Move` form.
+        :param other: The other algorithm to concatenate.
         """
-        match other:
-            case Move()      : newMoves = self._movs + [other]
-            case str()       : newMoves = self._movs + Algorithm.parse(other)._movs
-            case Algorithm() : newMoves = self._movs + other._movs
-            case _:
-                raise TypeError(f'Cannot add Algorithm with type {type(other)}.')
-        return simplified(Algorithm(newMoves))
+        otherAlgo = Algorithm._coerceToAlgo(other)
+        return simplified(Algorithm(self._movs + otherAlgo._movs))
 
     def __sub__(self, other: 'Move | str | Algorithm') -> 'Algorithm':
-        return self + (-other)
+        """
+        Concatenates the inverse of the second algorithm to the first algorithm, and simplifies the output.
+
+        :param other: The other algorithm to "subtract".
+
+        .. Notes::
+        For algorithms ``A`` and ``B`` we have ``A-B==A+(-B)``
+        """
+        otherAlgo = Algorithm._coerceToAlgo(other)
+        return simplified(Algorithm(self._movs + (-otherAlgo)._movs))
+
+    def __radd__(self, other: 'Move | str | Algorithm') -> 'Algorithm':
+        otherAlgo = Algorithm._coerceToAlgo(other)
+        return simplified(Algorithm(otherAlgo._movs + self._movs))
+
+    def __rsub__(self, other: 'Move | str | Algorithm') -> 'Algorithm':
+        otherAlgo = Algorithm._coerceToAlgo(other)
+        return simplified(Algorithm(otherAlgo._movs + (-self)._movs))
 
     def __mul__(self, times: int) -> 'Algorithm':
         """Repeats the algorithm a specified number of times and simplifies the output."""
@@ -245,6 +272,7 @@ class Algorithm:
     def __iter__(self):
         return iter(self._movs)
 
+
 def simplified(alg: Algorithm) -> Algorithm:
     """
     Returns the naive simplification of a given algorithm.
@@ -265,9 +293,9 @@ def simplified(alg: Algorithm) -> Algorithm:
         if stk:
             top = stk[-1]
             if (top.mov == move.mov) and (top.width == move.width):
-                total = (top.mod + move.mod) % 4
                 stk.pop()
-                if total != 0: stk.append(Move(move.width, move.mov, total))
+                if (total := (top.mod + move.mod) % 4) != 0:
+                    stk.append(Move(move.width, move.mov, total))
                 continue
         stk.append(move)
     return Algorithm(stk)

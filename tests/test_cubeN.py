@@ -47,7 +47,7 @@ def test_show_face_returns_string():
 def test_x_rotation_preserves_colors():
     c = CubeN()
     before = deepcopy(c.state)
-    c.xRot()
+    c._xRot()
     # Should still be 6 uniform faces
     for f in "UFRBLD":
         vals = {x for row in c.state[f] for x in row}
@@ -57,42 +57,42 @@ def test_y_rotation_moves_faces():
     c = CubeN()
     c >> "R"
     top_before = deepcopy(c.state["U"])
-    c.yRot()
+    c._yRot()
     assert c.state["U"] != top_before  # U rotated
 
 def test_z_rotation_moves_faces():
     c = CubeN()
     up_before = deepcopy(c.state["U"])
-    c.zRot()
+    c._zRot()
     assert c.state["U"] != up_before
 
 def test_u_turn_works():
     c = CubeN(3)
     before = deepcopy(c.state["F"][0])
-    c.uTurn(1)
+    c._uTurn(1)
     after = c.state["F"][0]
     assert after != before  # U should rotate F top row
 
 def test_invalid_u_turn():
     c = CubeN(3)
     with pytest.raises(ValueError):
-        c.uTurn(3)
+        c._uTurn(3)
 
 def test_turn_basic_move():
     c = CubeN()
     before = deepcopy(c.state)
-    c.turn(Move(1, "U", "1"))
+    c._turn(Move(1, "U", "1"))
     assert c.state != before
 
 def test_turn_prime_and_double():
     c = CubeN()
     before = deepcopy(c.state)
 
-    c.turn(Move(1, "R", "'"))
+    c._turn(Move(1, "R", "'"))
     assert c.state != before
 
     c.reset()
-    c.turn(Move(1, "R", "2"))
+    c._turn(Move(1, "R", "2"))
     assert c.state != before
 
 # algo() execution
