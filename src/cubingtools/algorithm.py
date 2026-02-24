@@ -13,14 +13,14 @@ from .error import *
 class Move:
     def __init__(self, width: int = 1, mov: str = 'U', mod: str | _Mod = '1'):
         """
-        Initializes a `Move` object a representing single move on a cube.
+        Initializes a ``Move`` object a representing single move on a cube.
 
         :param width: The number of layers to turn (default is 1).
-        :param mov: The move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
+        :param mov: The base move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
         :param mod: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
         """
         if mov not in ALL_MOVS: raise InvalidMoveError(self)
-        if mov in W_MOVS and width <= 1: raise InvalidMoveError(self)
+        if width <= 0: raise InvalidMoveError(self)
 
         self.mov = mov
         self.width = width
@@ -51,9 +51,7 @@ class Move:
         :rtype: Move
         :returns: A `Move` object corresponding to the token.
         """
-
-        def throw():
-            raise InvalidMoveError(f"Invalid move: {tok}")
+        def throw(): raise InvalidMoveError(f"Invalid move: {tok}")
 
         # helper parsing/guarding functions; raises invalid moves if applicable.
         def guardList(x, xs):
@@ -101,24 +99,24 @@ class Algorithm:
 
         :param moves: A list of `Move` objects representing the sequence of moves.
         """
-        self.movs = None
+        self._movs = None
 
         match moves:
             case None:
-                self.movs = []
+                self._movs = []
             case list():
                 if any((not isinstance(m, Move)) for m in moves):
                     raise TypeError('List must contain only Move objects')
-                self.movs = moves
+                self._movs = moves
             case str():
                 parsed = Algorithm.parse(moves)
-                self.movs = parsed.movs.copy()
+                self._movs = parsed._movs.copy()
             case _:
                 raise TypeError(f'Cannot construct an Algorithm with type {type(moves)}')
 
         # for what N can this be executed on an NxN cube?
-        if self.movs:
-            self.degree = max([m.width for m in self.movs]) * 2
+        if self._movs:
+            self.degree = max([m.width for m in self._movs]) * 2
         else:
             self.degree = 2
 
@@ -132,7 +130,7 @@ class Algorithm:
 
     def inverse(self) -> 'Algorithm':
         """Returns the inverse of the algorithm."""
-        return Algorithm([-move for move in self.movs[::-1]])
+        return Algorithm([-move for move in self._movs[::-1]])
 
     def __neg__(self) -> 'Algorithm':
         """Returns the inverse of the algorithm."""
@@ -143,12 +141,12 @@ class Algorithm:
         out = list(map(
             operator.add,
             [f"{i:>{padLen}}: " for i in range(1, len(self) + 1)],
-            [repr(move) for move in self.movs]))
+            [repr(move) for move in self._movs]))
         return '\n'.join(out)
 
     def __str__(self) -> str:
         """Returns the string representation of the algorithm."""
-        return ' '.join([str(move) for move in self.movs])
+        return ' '.join([str(move) for move in self._movs])
 
     def __add__(self, other: 'Move | str | Algorithm') -> 'Algorithm':
         """
@@ -157,21 +155,24 @@ class Algorithm:
         :param other: The other algorithm to concatenate, which can also be in `str` or `Move` form.
         """
         match other:
-            case Move()      : newMoves = self.movs + [other]
-            case str()       : newMoves = self.movs + Algorithm.parse(other).movs
-            case Algorithm() : newMoves = self.movs + other.movs
+            case Move()      : newMoves = self._movs + [other]
+            case str()       : newMoves = self._movs + Algorithm.parse(other)._movs
+            case Algorithm() : newMoves = self._movs + other._movs
             case _:
                 raise TypeError(f'Cannot add Algorithm with type {type(other)}.')
         return simplified(Algorithm(newMoves))
 
+    def __sub__(self, other: 'Move | str | Algorithm') -> 'Algorithm':
+        return self + (-other)
+
     def __mul__(self, times: int) -> 'Algorithm':
         """Repeats the algorithm a specified number of times and simplifies the output."""
         if times < 1: raise ValueError("Times must be a positive integer.")
-        return simplified(Algorithm(self.movs * times))
+        return simplified(Algorithm(self._movs * times))
 
     def __len__(self) -> int:
         """Returns the number of moves making up the algorithm."""
-        return len(self.movs)
+        return len(self._movs)
 
     @staticmethod
     def parse(algStr: str) -> Algorithm:
@@ -204,7 +205,7 @@ class Algorithm:
                 stk.pop()
                 # repeat inner alg and push stk
                 innerAlg = Algorithm(inner[::-1])
-                stk.extend((innerAlg * mul).movs)
+                stk.extend((innerAlg * mul)._movs)
             elif t == '(':
                 stk.append(t)
             else:
@@ -217,8 +218,32 @@ class Algorithm:
 
     def simplify(self):
         """Simplifies the algorithm in place."""
-        self.movs = simplified(self).movs
+        self._movs = simplified(self)._movs
 
+    def commutator(self, other: 'Algorithm') -> 'Algorithm':
+        """
+        Given algorithms ``A`` and ``B``, will return their commutator.
+
+        :param other: The other algorithm ``B`` to commute with.
+
+        :rtype: Algorithm
+        :returns: The commutator algorithm, ``[A,B]=A+B+(-A)+(-B)``
+        """
+        return self + other - self - other
+
+    def conjugate(self, other: 'Algorithm') -> 'Algorithm':
+        """
+        Given algorithms ``A`` and ``B``, will return the conjugation of ``A`` by ``B``.
+
+        :param other: The setup algorithm ``B``
+
+        :rtype: Algorithm
+        :returns: The conjugation, ``[A:B]=B+A+(-B)``
+        """
+        return other + self - other
+
+    def __iter__(self):
+        return iter(self._movs)
 
 def simplified(alg: Algorithm) -> Algorithm:
     """
@@ -236,12 +261,11 @@ def simplified(alg: Algorithm) -> Algorithm:
     """
     stk: list[Move] = []
 
-    for move in alg.movs:
+    for move in alg:
         if stk:
             top = stk[-1]
             if (top.mov == move.mov) and (top.width == move.width):
-                preTotal = (top.mod + move.mod) % 4
-                total = -1 if preTotal == 3 else preTotal
+                total = (top.mod + move.mod) % 4
                 stk.pop()
                 if total != 0: stk.append(Move(move.width, move.mov, total))
                 continue

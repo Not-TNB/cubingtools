@@ -1,8 +1,6 @@
 """Contains the private `_Mod` enum class"""
 
 from enum import IntEnum
-from unittest import case
-
 
 class _Mod(IntEnum):
     CW = 1
@@ -26,7 +24,7 @@ class _Mod(IntEnum):
         s = str(s)
         if s in ('','1')     : return _Mod.CW
         elif s == '2'        : return _Mod.HALF
-        elif s in ("'",'-1') : return _Mod.CCW
+        elif s in ("'",'-1','3') : return _Mod.CCW
         else:
             raise ValueError(f"Invalid modifier string: {s}")
 

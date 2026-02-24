@@ -29,12 +29,12 @@ class CubeN:
 
         # Generate WCA-type move list
         match n:
-            case 2: self.ms = deepcopy(MOVS2)
-            case 3: self.ms = deepcopy(MOVS)
+            case 2: self._ms = deepcopy(MOVS2)
+            case 3: self._ms = deepcopy(MOVS)
             case _: 
-                self.ms = deepcopy(MOVS)
+                self._ms = deepcopy(MOVS)
                 for i in range(2,1+n//2):
-                    self.ms += [str(i)+m for m in W_MOVS]
+                    self._ms += [str(i)+m for m in W_MOVS]
 
         # Generate solved and initial state
         def genFaceMat(col: str) -> list[list[str]]:
@@ -194,7 +194,7 @@ class CubeN:
             case Move(): self.turn(alg)
             case str() : self.algo(Algorithm.parse(alg))
             case Algorithm(): 
-                for m in alg.movs: self.turn(m)
+                for m in alg: self.turn(m)
             case _:
                 raise TypeError(f"Cannot execute the type {type(alg)} on a cube.")
         
@@ -227,7 +227,7 @@ class CubeN:
 
     def randMove(self) -> Move:
         """Returns a random scramble move"""
-        mov = random.choice(self.ms)
+        mov = random.choice(self._ms)
         mod = random.choice(list(_Mod))
         return Move.parse(mov + str(mod))
 
