@@ -2,6 +2,7 @@
 
 from enum import IntEnum
 
+
 class _Mod(IntEnum):
     CW = 1
     HALF = 2

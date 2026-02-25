@@ -63,6 +63,12 @@ def test_equivalent_representations():
     for a,b in tests:
         assert Algorithm(a) == Algorithm(b)
 
+def test_equality_different_degrees():
+    a = Algorithm("L")
+    b = Algorithm("100Rw L 100Rw'")
+    assert a == b
+    assert b == a
+
 def test_inequality_and_non_commutativity():
     tests = [
         ("R U", "U R"),

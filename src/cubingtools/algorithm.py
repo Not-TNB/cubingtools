@@ -117,10 +117,9 @@ class Algorithm:
                 raise TypeError(f'Cannot construct an Algorithm with type {type(moves)}')
 
         # for what N can this be executed on an NxN cube?
+        self.degree = 2
         if self._movs:
-            self.degree = max([m.width for m in self._movs]) * 2
-        else:
-            self.degree = 2
+            self.degree = max([m.width for m in self._movs]) + 1
 
     def __eq__(self, other: 'Algorithm') -> bool:
         """
@@ -128,7 +127,8 @@ class Algorithm:
         inverse of the other to a solved cube and checking if it is still solved.
         """
         from cubingtools.cube import CubeN
-        return (CubeN(self.degree) >> self >> -other).isSolved()
+        d = max(self.degree, other.degree)
+        return (CubeN(d) >> self >> -other).isSolved()
 
     def inverse(self) -> 'Algorithm':
         """Returns the inverse of the algorithm."""
@@ -142,7 +142,8 @@ class Algorithm:
         out = list(map(
             operator.add,
             [f"{i:>{padLen}}: " for i in range(1, len(self) + 1)],
-            [repr(move) for move in self._movs]))
+            [repr(move) for move in self._movs]
+        ))
         return '\n'.join(out)
 
     def __str__(self) -> str:
