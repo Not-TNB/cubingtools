@@ -52,11 +52,8 @@ class Move:
         :rtype: Move
         :returns: A `Move` object corresponding to the token.
         """
+        def throw(): raise InvalidMoveError(f"Invalid move: {tok}")
 
-        def throw():
-            raise InvalidMoveError(f"Invalid move: {tok}")
-
-        # helper parsing/guarding functions; raises invalid moves if applicable.
         def guardList(x, xs):
             if x not in xs: throw()
 
@@ -125,7 +122,7 @@ class Algorithm:
         else:
             self.degree = 2
 
-    def __eq__(self, other: 'Algorithm'):
+    def __eq__(self, other: 'Algorithm') -> bool:
         """
         Checks if two algorithms are equivalent by applying one then the
         inverse of the other to a solved cube and checking if it is still solved.
@@ -138,10 +135,9 @@ class Algorithm:
         return Algorithm([-move for move in self._movs[::-1]])
 
     def __neg__(self) -> 'Algorithm':
-        """Returns the inverse of the algorithm."""
         return self.inverse()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         padLen = len(str(len(self) - 1))
         out = list(map(
             operator.add,
@@ -155,7 +151,7 @@ class Algorithm:
 
     @staticmethod
     def _coerceToAlgo(other: 'Move | str | Algorithm') -> Algorithm:
-        """Helper function for Algorithm binary operators to coerce the other operand into an Algorithm."""
+        """Helper function for Algorithm binary operators."""
         match other:
             case Move()      : return Algorithm([other])
             case str()       : return Algorithm(other)
@@ -218,8 +214,7 @@ class Algorithm:
         for t in tokens:
             if t.startswith(')'):
                 # how many times to repeat inner alg?
-                if t == ')':
-                    mul = 1
+                if t == ')': mul = 1
                 else:
                     if (mul := int(t[1:])) <= 0:
                         raise InvalidAlgorithmError("Invalid multiplier in token:", t)
@@ -245,7 +240,7 @@ class Algorithm:
 
     def simplify(self):
         """Simplifies the algorithm in place."""
-        self._movs = simplified(self)._movs
+        self._movs = simplified(self)._movs.copy()
 
     def commutator(self, other: 'Algorithm') -> 'Algorithm':
         """

@@ -4,7 +4,7 @@ from cubingtools import CubeN, Move, Algorithm
 
 def test_rand_move_returns_move():
     c = CubeN()
-    mv = c.randMove()
+    mv = c._randMove()
     assert isinstance(mv, Move)
     assert c >> mv
 
