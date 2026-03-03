@@ -1,103 +1,29 @@
 """
-Classes and methods working with the internal representation of moves and algorithms,
+Classes and methods working with the internal representation of algorithms,
 which can be performed on cubes.
 """
 
 from __future__ import annotations
 import operator
 import re
-from .modifier import _Mod
-from .constants import *
-from .error import *
+from .move import Move
+from .error import InvalidAlgorithmError
 
+########################################################################################################################
 
-class Move:
-    def __init__(self, width: int = 1, mov: str = 'U', mod: str | _Mod = '1'):
-        """
-        Initializes a ``Move`` object a representing single move on a cube.
+_VALID_MOVE_STRING     = r"\d*[A-Za-z]w?[2']?|\(|\)\d*"
+_VALID_MOVE_REGEX      = re.compile(_VALID_MOVE_STRING)
+_ALGORITHM_LEXER_REGEX = re.compile(rf"^(\s*({_VALID_MOVE_STRING})\s*)*$")
 
-        :param width: The number of layers to turn (default is 1).
-        :param mov: The base move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
-        :param mod: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
-        """
-        if mov not in ALL_MOVS: raise InvalidMoveError(self)
-        if width <= 0: raise InvalidMoveError(self)
-
-        self.mov = mov
-        self.width = width
-        self.mod = mod if isinstance(mod, _Mod) else _Mod.parse(mod)
-
-    def __repr__(self):
-        return f'Move({self.width}, {self.mov}, {self.mod})'
-
-    def __neg__(self) -> 'Move':
-        """Returns the inverse of the move."""
-        return Move(self.width, self.mov, -self.mod)
-
-    def __str__(self) -> str:
-        """Returns the string representation of the move."""
-        lay = str(self.width) if self.width > 2 else ''
-        w = 'w' if self.width >= 2 else ''
-        return (lay +
-                self.mov + w +
-                (str(self.mod) if self.mod != _Mod.CW else ''))
-
-    @staticmethod
-    def parse(tok: str) -> Move:
-        """
-        Parses a string token into a Move.
-
-        :param tok: The string representation of the move (e.g., U, R2, 3Fw', etc.) to be consumed.
-
-        :rtype: Move
-        :returns: A `Move` object corresponding to the token.
-        """
-        def throw(): raise InvalidMoveError(f"Invalid move: {tok}")
-
-        def guardList(x, xs):
-            if x not in xs: throw()
-
-        def parseWidth(dig):
-            if not dig.isdigit(): throw()
-            if (d := int(dig)) < 2: throw()
-            return d
-
-        guardAllMov = lambda m: guardList(m, ALL_MOVS)
-        guardWideMov = lambda m: guardList(m, MOVS)
-
-        tokens = [t for t in re.findall(MOVE_LEXER_REGEX, tok) if t != '']
-
-        match tokens:
-            case [t]:
-                guardAllMov(t)
-                return Move(1, t, '1')
-            case [mov, 'w']:
-                guardWideMov(mov)
-                return Move(2, mov, '1')
-            case [mov, mod]:
-                guardAllMov(mov)
-                return Move(1, mov, mod)
-            case [mov, 'w', mod]:
-                guardWideMov(mov)
-                return Move(2, mov, mod)  # ex. Rw === 2Rw
-            case [width, mov, 'w']:
-                width = parseWidth(width)
-                guardWideMov(mov)
-                return Move(width, mov, '1')
-            case [width, mov, 'w', mod]:
-                width = parseWidth(width)
-                guardWideMov(mov)
-                return Move(width, mov, mod)
-            case _:
-                raise InvalidMoveError(tok)
-
+########################################################################################################################
 
 class Algorithm:
     def __init__(self, moves: Move | list[Move] | str | None = None):
         """
         Represents a sequence of moves (an algorithm) on the cube.
 
-        :param moves: ``None`` (cast to empty algorithms), ``Move`` (cast to a single-move algorithm), ``list[Move]`` or ``str`` (parsed using ``Algorithm.parse()``)
+        :param moves: ``None`` (cast to empty algorithms), ``Move`` (cast to a single-move algorithm), \
+        ``list[Move]`` or ``str`` (parsed using ``Algorithm.parse()``)
         """
         self._movs = None
 
@@ -199,6 +125,12 @@ class Algorithm:
         return len(self._movs)
 
     @staticmethod
+    def _tokenize(algStr: str) -> list[str]:
+        if not _ALGORITHM_LEXER_REGEX.match(algStr):
+            raise InvalidAlgorithmError("Invalid token in algorithm string.")
+        return _VALID_MOVE_REGEX.findall(algStr)
+
+    @staticmethod
     def parse(algStr: str) -> Algorithm:
         """
         Parses a string representation of an algorithm into an Algorithm object.
@@ -210,15 +142,16 @@ class Algorithm:
 
         >>> Algorithm.parse("U R2 F' 3Rw2 (R U')3 D") -> Algorithm(...)
         """
-        tokens = re.findall(ALGORITHM_LEXER_REGEX, algStr)
+        tokens = Algorithm._tokenize(algStr)
         stk = []
         for t in tokens:
             if t.startswith(')'):
                 # how many times to repeat inner alg?
                 if t == ')': mul = 1
                 else:
-                    if (mul := int(t[1:])) <= 0:
-                        raise InvalidAlgorithmError("Invalid multiplier in token:", t)
+                    tail = t[1:]
+                    if (mul := int(tail)) <= 0:
+                        raise InvalidAlgorithmError(f"Invalid multiplier in token: {tail}")
                 # pop til '(' and remove it
                 inner = []
                 while stk[-1] != '(':

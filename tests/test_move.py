@@ -1,5 +1,6 @@
 import pytest
-from cubingtools.algorithm import Move, _Mod
+from cubingtools.algorithm import Move
+from cubingtools.move import _Mod
 
 def test_move_simple():
     m = Move(1, 'U', '1')

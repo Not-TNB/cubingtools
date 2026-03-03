@@ -2,13 +2,36 @@
 Contains the `CubeN` class working with NxN Rubik's cubes for N>=2
 """
 
-from .algorithm import Move, Algorithm
-from .constants import *
+from .algorithm import Algorithm
+from .move import Move, MODS
 from .error import InvalidMoveError
-from .modifier import _Mod
+from enum import StrEnum
 import random
 from copy import deepcopy
 
+########################################################################################################################
+
+class _Face(StrEnum):
+    U = 'U'
+    F = 'F'
+    R = 'R'
+    B = 'B'
+    L = 'L'
+    D = 'D'
+
+FACES = list(_Face)
+
+def _generateScrambleMoveList(n: int):
+    match n:
+        case 2: return deepcopy(FACES[:3])
+        case 3: return deepcopy(FACES)
+        case _:
+            result = deepcopy(FACES)
+            for i in range(2, 1 + n // 2):
+                result += [str(i) + m + 'w' for m in FACES]
+            return result
+
+########################################################################################################################
 
 class CubeN:
     def __init__(self, n: int = 3, cols: str = 'wgrboy'):
@@ -29,21 +52,14 @@ class CubeN:
         self.size = n
         self.cols = cols
 
-        # Generate WCA-type move list
-        match n:
-            case 2: self._ms = deepcopy(MOVS2)
-            case 3: self._ms = deepcopy(MOVS)
-            case _:
-                self._ms = deepcopy(MOVS)
-                for i in range(2, 1 + n // 2):
-                    self._ms += [str(i) + m for m in W_MOVS]
+        self._ms = _generateScrambleMoveList(n)
 
         # Generate solved and initial state
         def genFaceMat(col: str) -> list[list[str]]:
             """Generate a face matrix filled with the given color."""
             return [[col for _ in range(self.size)] for _ in range(self.size)]
 
-        stateKs = MOVS
+        stateKs = FACES
         stateVs = list(map(genFaceMat, self.cols))
 
         self.state = dict(zip(stateKs, deepcopy(stateVs)))
@@ -74,7 +90,7 @@ class CubeN:
         lurdTop = f'┌{bordr}┼{bordr}┼{bordr}┬{bordr}┐\n'
         lurdBot = f'└{bordr}┼{bordr}┼{bordr}┴{bordr}┘\n'
         zipLURDFaces = zip(self.state['L'], self.state['F'], self.state['R'], self.state['B'])
-        showRow = lambda row: f'{space}│ {" ".join(row)} │\n'
+        showRow = lambda r: f'{space}│ {" ".join(r)} │\n'
 
         # print U face
         out = uTop
@@ -96,8 +112,8 @@ class CubeN:
 
     @staticmethod
     def _validateFace(face: str):
-        if not isinstance(face, str) or (face not in MOVS) or (len(face) != 1):
-            raise ValueError(f"Face must be one of {MOVS}")
+        if not isinstance(face, str) or (face not in FACES) or (len(face) != 1):
+            raise ValueError(f"Face must be one of {FACES}")
 
     def _rtFC(self, face: str) -> list[list[str]]:
         """Rotates a face (NOT A LAYER) clockwise."""
@@ -152,13 +168,9 @@ class CubeN:
         """Executes a given `Move` to the cube's state."""
         width, mov, mod = move.width, move.mov, move.mod
 
-        match mod:
-            case _Mod.CCW:
-                for _ in range(3): self._turn(Move(width, mov, '1'))
-                return
-            case _Mod.HALF:
-                for _ in range(2): self._turn(Move(width, mov, '1'))
-                return
+        if mod != 1:
+            for _ in range(mod): self._turn(Move(width, mov, 1))
+            return
 
         uMov = 'U' if width == 1 else f'{width}Uw'
 
@@ -240,11 +252,11 @@ class CubeN:
     def _randMove(self) -> Move:
         """Returns a random scramble move"""
         mov = random.choice(self._ms)
-        mod = random.choice(list(_Mod))
+        mod = random.choice(MODS)
         return Move.parse(mov + str(mod))
 
     def __hash__(self) -> int:
-        return hash(''.join([''.join(''.join(r) for r in self.state[f]) for f in MOVS]))
+        return hash(''.join([''.join(''.join(r) for r in self.state[f]) for f in FACES]))
 
     def scramble(self, m: int | None = None) -> Algorithm:
         """

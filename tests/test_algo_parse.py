@@ -28,6 +28,12 @@ def test_algo_xyz_move():
     alg = Algorithm.parse("(x2 y) R' F D2 R D'")
     assert str(alg) == "x2 y R' F D2 R D'"
 
+def test_algo_invalid_move():
+    algs = ["Q", "2F", "x3", "D'2", "Sw", "R1000"]
+    for alg in algs:
+        with pytest.raises(Exception):
+            Algorithm.parse(alg)
+
 def test_algo_invalid_mult():
     with pytest.raises(InvalidAlgorithmError):
         Algorithm.parse("R U2 (D x)0 R ")

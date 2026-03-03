@@ -79,7 +79,7 @@ MODS = ["", "2", "'"]
 WIDTHS = ["", "2", "3", "4"]
 
 def random_move():
-    face = random.choice(MOVS)
+    face = random.choice("UFLBRD")
     mod = random.choice(MODS)
     width = random.choice(WIDTHS)
     if width == "":
