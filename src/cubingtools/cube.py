@@ -3,23 +3,12 @@ Contains the `CubeN` class working with NxN Rubik's cubes for N>=2
 """
 
 from .algorithm import Algorithm
-from .move import Move, MODS
-from .error import InvalidMoveError
-from enum import StrEnum
+from .move import Move
+from ._enumHelpers import _CubeFace, FACES, MODS
 import random
 from copy import deepcopy
 
 ########################################################################################################################
-
-class _Face(StrEnum):
-    U = 'U'
-    F = 'F'
-    R = 'R'
-    B = 'B'
-    L = 'L'
-    D = 'D'
-
-FACES = list(_Face)
 
 def _generateScrambleMoveList(n: int):
     match n:
@@ -56,14 +45,19 @@ class CubeN:
 
         # Generate solved and initial state
         def genFaceMat(col: str) -> list[list[str]]:
-            """Generate a face matrix filled with the given color."""
             return [[col for _ in range(self.size)] for _ in range(self.size)]
 
         stateKs = FACES
         stateVs = list(map(genFaceMat, self.cols))
-
         self.state = dict(zip(stateKs, deepcopy(stateVs)))
         self.solved = deepcopy(self.state)
+
+        for face in _CubeFace:
+            def getter(s, f=face):
+                return s.state[f]
+            def setter(s, mat, f=face):
+                s.state[f] = mat
+            setattr(CubeN, face.name, property(getter, setter))
 
     def showFace(self, face: str) -> str:
         """
@@ -74,10 +68,10 @@ class CubeN:
         :rtype: str
         :returns: A string representation of the specified face.
         """
-        self._validateFace(face)
+        f = self.state[_CubeFace(face)]
         bordr = "──" * (self.size - 1)
         out = f'┌{bordr}───┐\n'
-        out += '\n'.join([f'│ {" ".join(row)} │' for row in self.state[face]])
+        out += '\n'.join([f'│ {" ".join(row)} │' for row in f])
         out += f'\n└{bordr}───┘'
         return out
 
@@ -87,21 +81,22 @@ class CubeN:
         bordr = '─' * (2 * self.size + 1)
         uTop = f'{space}┌{bordr}┐\n'
         dBot = f'{space}└{bordr}┘\n'
-        lurdTop = f'┌{bordr}┼{bordr}┼{bordr}┬{bordr}┐\n'
-        lurdBot = f'└{bordr}┼{bordr}┼{bordr}┴{bordr}┘\n'
-        zipLURDFaces = zip(self.state['L'], self.state['F'], self.state['R'], self.state['B'])
+        lfrdTop = f'┌{bordr}┼{bordr}┼{bordr}┬{bordr}┐\n'
+        lfrdBot = f'└{bordr}┼{bordr}┼{bordr}┴{bordr}┘\n'
+
         showRow = lambda r: f'{space}│ {" ".join(r)} │\n'
+        showLFRD = lambda l,f,r,d: f'│ {" ".join(l)} │ {" ".join(f)} │ {" ".join(r)} │ {" ".join(d)} │\n'
 
         # print U face
         out = uTop
-        for row in self.state['U']: out += showRow(row)
+        for row in self.U: out += showRow(row)
         # print LFRD faces
-        out += lurdTop
-        for l, u, r, d in zipLURDFaces:
-            out += f'│ {" ".join(l)} │ {" ".join(u)} │ {" ".join(r)} │ {" ".join(d)} │\n'
-        out += lurdBot
+        out += lfrdTop
+        for l, f, r, d in zip(self.L, self.F, self.R, self.D):
+            out += showLFRD(l,f,r,d)
+        out += lfrdBot
         # print D face
-        for row in self.state['D']: out += showRow(row)
+        for row in self.D: out += showRow(row)
         out += dBot
 
         return out
@@ -110,25 +105,20 @@ class CubeN:
         """Print's a net of the cube's current state."""
         return self.__repr__()
 
-    @staticmethod
-    def _validateFace(face: str):
-        if not isinstance(face, str) or (face not in FACES) or (len(face) != 1):
-            raise ValueError(f"Face must be one of {FACES}")
-
-    def _rtFC(self, face: str) -> list[list[str]]:
+    def _rtFC(self, face: str | _CubeFace) -> list[list[str]]:
         """Rotates a face (NOT A LAYER) clockwise."""
-        self._validateFace(face)
-        return [list(row) for row in zip(*self.state[face][::-1])]
+        f = self.state[_CubeFace(face)]
+        return [list(row) for row in zip(*f[::-1])]
 
-    def _rtFA(self, face: str) -> list[list[str]]:
+    def _rtFA(self, face: str | _CubeFace) -> list[list[str]]:
         """Rotates a face (NOT A LAYER) anticlockwise."""
-        self._validateFace(face)
-        return list(list(x) for x in zip(*self.state[face]))[::-1]
+        f = self.state[_CubeFace(face)]
+        return list(list(x) for x in zip(*f))[::-1]
 
-    def _rtF2(self, face: str) -> list[list[str]]:
+    def _rtF2(self, face: str | _CubeFace) -> list[list[str]]:
         """Rotates a face (NOT A LAYER) by 180 degrees."""
-        self._validateFace(face)
-        return [row[::-1] for row in self.state[face][::-1]]
+        f = self.state[_CubeFace(face)]
+        return [row[::-1] for row in f[::-1]]
 
     def _uTurn(self, n: int = 1) -> None:
         """
@@ -144,25 +134,43 @@ class CubeN:
         """
         if n <= 0 or n >= self.size:
             raise ValueError(f"n must be strictly 1 or more, and strictly less than self.size (your n={n})")
-        self.state['U'] = self._rtFC('U')
+        self.U = self._rtFC('U')
         for i in range(n):
-            (self.state['F'][i][:], self.state['R'][i][:], self.state['B'][i][:], self.state['L'][i][:]) = (
-             self.state['R'][i][:], self.state['B'][i][:], self.state['L'][i][:], self.state['F'][i][:])
+            (self.F[i][:], self.R[i][:], self.B[i][:], self.L[i][:]) = (
+             self.R[i][:], self.B[i][:], self.L[i][:], self.F[i][:])
 
     def _xRot(self) -> None:
         """Rotates the entire cube along the x-axis clockwise."""
-        (self.state['U'], self.state['R'], self.state['L'], self.state['D'], self.state['F'], self.state['B']) = (
-         self.state['F'], self._rtFC('R'), self._rtFA('L'), self._rtF2('B'), self.state['D'], self._rtF2('U'))
+        (self.U, self.F, self.R, self.B, self.L, self.D) = (
+            self.F,
+            self.D,
+            self._rtFC('R'),
+            self._rtF2('U'),
+            self._rtFA('L'),
+            self._rtF2('B')
+        )
 
     def _yRot(self) -> None:
         """Rotates the entire cube along the y-axis clockwise."""
-        (self.state['U'], self.state['R'], self.state['L'], self.state['D'], self.state['F'], self.state['B']) = (
-         self._rtFC('U'), self.state['B'], self.state['F'], self._rtFA('D'), self.state['R'], self.state['L'])
+        (self.U, self.F, self.R, self.B, self.L, self.D) = (
+            self._rtFC('U'),
+            self.R,
+            self.B,
+            self.L,
+            self.F,
+            self._rtFA('D')
+        )
 
     def _zRot(self) -> None:
         """Rotates the entire cube along the z-axis clockwise."""
-        (self.state['U'], self.state['R'], self.state['L'], self.state['D'], self.state['F'], self.state['B']) = (
-         self._rtFC('L'), self._rtFC('U'), self._rtFC('D'), self._rtFC('R'), self._rtFC('F'), self._rtFA('B'))
+        (self.U, self.F, self.R, self.B, self.L, self.D) = (
+            self._rtFC('L'),
+            self._rtFC('F'),
+            self._rtFC('U'),
+            self._rtFA('B'),
+            self._rtFC('D'),
+            self._rtFC('R')
+        )
 
     def _turn(self, move: Move) -> None:
         """Executes a given `Move` to the cube's state."""
@@ -195,8 +203,6 @@ class CubeN:
             case 'r': self.algo("x L'")
             case 'f': self.algo("z B'")
             case 'b': self.algo("z' F'")
-
-            case _: raise InvalidMoveError(f"Invalid turn attempted on a cube: {move}")
 
     def algo(self, alg: Move | str | Algorithm) -> None:
         """

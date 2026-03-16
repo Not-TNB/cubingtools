@@ -3,78 +3,12 @@ Classes and methods working with the internal representation of cube moves.
 """
 
 from .error import InvalidMoveError
-from enum import IntEnum, StrEnum
+from ._enumHelpers import _Mod, _BaseMove, FACES
 import re
 
 ########################################################################################################################
 
 _MOVE_LEXER_REGEX = re.compile(r"\d*|[A-Za-z]|w?|[2']?")
-
-########################################################################################################################
-
-class _Mod(IntEnum):
-    CW = 1
-    HALF = 2
-    CCW = 3
-
-    def _matchup(self, cw, half, ccw):
-        match self:
-            case _Mod.CW   : return cw
-            case _Mod.HALF : return half
-            case _Mod.CCW  : return ccw
-
-    def __str__(self) -> str:
-        return self._matchup('', '2', "'")
-
-    def __repr__(self) -> str:
-        return self._matchup('1',  '2', '-1')
-
-    def __neg__(self) -> '_Mod':
-        return self._matchup(_Mod.CCW, _Mod.HALF, _Mod.CW)
-
-    @classmethod
-    def parse(cls, s) -> '_Mod':
-        s = str(s)
-        if s in ('', '1'):
-            return cls.CW
-        elif s == '2':
-            return cls.HALF
-        elif s in ("'", '-1'):
-            return cls.CCW
-        else:
-            raise ValueError(f"Invalid modifier string: {s}")
-
-MODS = list(_Mod)
-
-########################################################################################################################
-
-class _BaseMove(StrEnum):
-    XRot = 'x'
-    YRot = 'y'
-    ZRot = 'z'
-    UBig = 'u'
-    FBig = 'f'
-    RBig = 'r'
-    BBig = 'b'
-    LBig = 'l'
-    DBig = 'd'
-    UTurn = 'U'
-    FTurn = 'F'
-    RTurn = 'R'
-    BTurn = 'B'
-    LTurn = 'L'
-    DTurn = 'D'
-    MSlice = 'M'
-    ESlice = 'E'
-    SSlice = 'S'
-
-ALL_MOVS = list(_BaseMove)
-
-_MOVE_FACES = tuple(
-    m.value
-    for m in _BaseMove
-    if m.name.endswith("Turn")
-)
 
 ########################################################################################################################
 
@@ -116,9 +50,8 @@ class Move:
         """Returns the string representation of the move."""
         lay = str(self.width) if self.width > 2 else ''
         w = 'w' if self.width >= 2 else ''
-        return (lay +
-                self.mov + w +
-                (str(self.mod) if self.mod != _Mod.CW else ''))
+        modStr = str(self.mod) if self.mod != _Mod.CW else ''
+        return lay + self.mov + w + modStr
 
     @staticmethod
     def parse(tok: str) -> 'Move | None':
@@ -145,7 +78,7 @@ class Move:
             try: return _Mod.parse(m)
             except ValueError: throw()
 
-        guardFace = lambda x: throw() if x not in _MOVE_FACES else None
+        guardFace = lambda x: throw() if x not in FACES else None
 
         tokens = [t for t in re.findall(_MOVE_LEXER_REGEX, tok) if t != '']
 

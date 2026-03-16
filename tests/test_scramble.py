@@ -1,6 +1,7 @@
 import pytest
 
-from cubingtools import CubeN, Move, Algorithm
+from cubingtools import CubeN, Algorithm
+from cubingtools.move import Move
 
 def test_rand_move_returns_move():
     c = CubeN()
