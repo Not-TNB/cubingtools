@@ -81,20 +81,20 @@ class CubeN:
         bordr = '─' * (2 * self.size + 1)
         uTop = f'{space}┌{bordr}┐\n'
         dBot = f'{space}└{bordr}┘\n'
-        lfrdTop = f'┌{bordr}┼{bordr}┼{bordr}┬{bordr}┐\n'
-        lfrdBot = f'└{bordr}┼{bordr}┼{bordr}┴{bordr}┘\n'
+        lfrbTop = f'┌{bordr}┼{bordr}┼{bordr}┬{bordr}┐\n'
+        lfrbBot = f'└{bordr}┼{bordr}┼{bordr}┴{bordr}┘\n'
 
         showRow = lambda r: f'{space}│ {" ".join(r)} │\n'
-        showLFRD = lambda l,f,r,d: f'│ {" ".join(l)} │ {" ".join(f)} │ {" ".join(r)} │ {" ".join(d)} │\n'
+        showLFRB = lambda l,f,r,b: f'│ {" ".join(l)} │ {" ".join(f)} │ {" ".join(r)} │ {" ".join(b)} │\n'
 
         # print U face
         out = uTop
         for row in self.U: out += showRow(row)
-        # print LFRD faces
-        out += lfrdTop
-        for l, f, r, d in zip(self.L, self.F, self.R, self.D):
-            out += showLFRD(l,f,r,d)
-        out += lfrdBot
+        # print LFRB faces
+        out += lfrbTop
+        for l, f, r, b in zip(self.L, self.F, self.R, self.B):
+            out += showLFRB(l,f,r,b)
+        out += lfrbBot
         # print D face
         for row in self.D: out += showRow(row)
         out += dBot

@@ -19,13 +19,13 @@ def test_commutator_identity_with_self():
 def test_conjugate_identity():
     A = Algorithm("R U")
     I = Algorithm("")
-    assert A.conjugate(I) == A
+    assert I.conjugate(A) == A
 
 # [A:B] = BA(B^-1)
 def test_conjugate_basic():
     A = Algorithm("R U")
     B = Algorithm("F")
-    conj = A.conjugate(B)
+    conj = B.conjugate(A)
     expected = B + A - B
     assert conj == expected
 

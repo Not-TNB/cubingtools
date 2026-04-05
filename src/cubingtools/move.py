@@ -109,3 +109,29 @@ class Move:
             case _:
                 throw()
                 return None
+
+    def mirror(self):
+        """Returns the mirror of the move."""
+
+        def mir(new): return -Move(self.width, new, self.mod)
+
+        match self.mov:
+            case 'x' : return self
+            case 'y' : return -self
+            case 'z' : return -self
+            case 'u' : return -self
+            case 'f' : return -self
+            case 'r' : return mir(_BaseMove.LBig)
+            case 'b' : return -self
+            case 'l' : return mir(_BaseMove.RBig)
+            case 'd' : return -self
+            case 'U' : return -self
+            case 'F' : return -self
+            case 'R' : return mir(_BaseMove.LTurn)
+            case 'B' : return -self
+            case 'L' : return mir(_BaseMove.RTurn)
+            case 'D' : return -self
+            case 'M' : return self
+            case 'E' : return -self
+            case 'S' : return -self
+            case _   : raise InvalidMoveError(f"Invalid move to mirror: {self.mov}")

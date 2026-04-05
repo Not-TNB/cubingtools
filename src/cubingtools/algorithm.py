@@ -194,12 +194,16 @@ class Algorithm:
         :param other: The setup algorithm ``B``
 
         :rtype: Algorithm
-        :returns: The conjugation, ``[A:B]=B+A+(-B)``
+        :returns: The conjugation, ``[A:B]=A+B+(-A)``
         """
-        return other + self - other
+        return self + other - self
 
     def __iter__(self):
         return iter(self._movs)
+
+    def mirror(self):
+        """Returns the mirror of the algorithm, making right-handed algorithms left-handed and vice versa."""
+        return Algorithm([m.mirror() for m in self._movs])
 
 
 def simplified(alg: Algorithm) -> Algorithm:
