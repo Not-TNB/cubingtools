@@ -197,11 +197,11 @@ class CubeN:
             case 'E': self.algo("U D' y'")
             case 'S': self.algo("F' B z")
 
-            case 'u': self.algo("y D'")
+            case 'u': self.algo("y D")
             case 'd': self.algo("y' U'")
-            case 'l': self.algo("x' R'")
-            case 'r': self.algo("x L'")
-            case 'f': self.algo("z B'")
+            case 'l': self.algo("x' R")
+            case 'r': self.algo("x L")
+            case 'f': self.algo("z B")
             case 'b': self.algo("z' F'")
 
     def algo(self, alg: Move | str | Algorithm) -> None:

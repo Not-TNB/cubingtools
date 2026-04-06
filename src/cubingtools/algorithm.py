@@ -49,12 +49,16 @@ class Algorithm:
 
     def __eq__(self, other: 'Algorithm') -> bool:
         """
-        Checks if two algorithms are equivalent by applying one then the
-        inverse of the other to a solved cube and checking if it is still solved.
+        Checks if two algorithms are effectively equal i.e. they have the same effect on a sufficiently
+        large cube.
+
+        :param other: The other algorithm to compare.
+
+        .. Notes::
+        For algorithms ``A`` and ``B``, the computations ``A==B`` and ``equiv(A,B)`` are equivalent.
         """
-        from cubingtools.cube import CubeN
-        d = max(self.degree, other.degree)
-        return (CubeN(d) >> self >> -other).isSolved()
+        from .algorithmExtensions import equiv
+        return equiv(self, other)
 
     def inverse(self) -> 'Algorithm':
         """Returns the inverse of the algorithm."""
@@ -204,7 +208,6 @@ class Algorithm:
     def mirror(self):
         """Returns the mirror of the algorithm, making right-handed algorithms left-handed and vice versa."""
         return Algorithm([m.mirror() for m in self._movs])
-
 
 def simplified(alg: Algorithm) -> Algorithm:
     """

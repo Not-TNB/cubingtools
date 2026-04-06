@@ -1,5 +1,6 @@
 import pytest
 from cubingtools.algorithm import *
+from cubingtools.algorithmExtensions import *
 import random
 
 # -----------------------
@@ -42,7 +43,7 @@ def test_wide_moves_different_width_do_not_merge():
 
 def test_non_adjacent_no_merge():
     alg = Algorithm("R U R")
-    assert simplified(alg) == Algorithm("R U R")
+    assert (simplified(alg), Algorithm("R U R"))
 
 # -----------------------
 # Basic example
@@ -50,7 +51,7 @@ def test_non_adjacent_no_merge():
 
 def test_basic():
     alg = Algorithm("F U R' U' U R2")
-    assert simplified(alg) == Algorithm("F U R")
+    assert equiv(simplified(alg), Algorithm("F U R"))
 
 # -----------------------
 # Idempotency
@@ -60,7 +61,7 @@ def test_idempotent():
     alg = Algorithm("R R R")
     first = simplified(alg)
     second = simplified(first)
-    assert first == second
+    assert equiv(first, second)
 
 # -----------------------
 # In-place simplify()
@@ -69,7 +70,7 @@ def test_idempotent():
 def test_simplify_in_place():
     alg = Algorithm("R R'")
     alg.simplify()
-    assert alg == Algorithm()
+    assert equiv(alg, Algorithm())
 
 # -------------------------------------------------
 # Random stress test
@@ -97,5 +98,5 @@ def test_random_invariants():
         simp = simplified(alg)
 
         assert len(simp) <= len(alg)
-        assert alg == simp
-        assert simplified(simp) == simp
+        assert equiv(alg, simp)
+        assert equiv(simplified(simp), simp)
