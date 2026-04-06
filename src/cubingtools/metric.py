@@ -4,6 +4,15 @@ from enum import StrEnum
 from .algorithm import *
 
 class Metric(StrEnum):
+    """
+    Move counting metric used to measure algorithm length.
+
+    HTM  (Half Turn Metric):        Every face turn counts as 1; double turns also count as 1.
+    QTM  (Quarter Turn Metric):     Only 90° turns count as 1; double turns count as 2.
+    ETM  (Execution Turn Metric):   Like HTM, but slice moves and rotations also count as 1.
+    STM  (Slice Turn Metric):       Like HTM, but M/E/S slice moves count as 1 (not 2).
+    OBTM (Outer Block Turn Metric): Wide/block moves count as 1 regardless of layer depth.
+    """
     HTM  = "HTM"   # Half Turn Metric
     QTM  = "QTM"   # Quarter Turn Metric
     ETM  = "ETM"   # Execution Turn Metric
