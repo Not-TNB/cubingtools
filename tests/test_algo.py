@@ -88,3 +88,15 @@ def test_invalid_algorithm_constructor():
         a = Algorithm([Move.parse("U"), 7])
     with pytest.raises(TypeError):
         a = Algorithm(8936384)
+
+def test_mirror_involution():
+    alg = Algorithm.parse("R U r u M E S x y z")
+    assert alg.mirror().mirror() == alg
+
+def test_mirror_unchanged_moves():
+    alg = Algorithm.parse("x M")
+    assert alg.mirror() == alg
+
+def test_mirror_expected():
+    alg = Algorithm.parse("R L U D F B r l u d f b M E S x y z")
+    assert alg.mirror() == Algorithm.parse("L' R' U' D' F' B' l' r' u' d' f' b' M E' S' x y' z'")
