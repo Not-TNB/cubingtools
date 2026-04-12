@@ -22,22 +22,22 @@ def test_algorithm_add_string():
     assert str(r) == "R2 F' U"
 
 def test_algorithm_add_algorithm():
-    a1 = Algorithm.parse("U R")
-    a2 = Algorithm.parse("F2 U'")
+    a1 = Algorithm("U R")
+    a2 = Algorithm("F2 U'")
     a3 = a1 + a2
     assert str(a3) == "U R F2 U'"
 
 def test_algorithm_repeat():
-    a = Algorithm.parse("R U")
+    a = Algorithm("R U")
     r = a * 3
     assert str(r) == "R U R U R U"
 
 def test_algorithm_inverse_basic():
-    a = Algorithm.parse("U R' F2")
+    a = Algorithm("U R' F2")
     assert str(a.inverse()) == "F2 R U'"
 
 def test_algorithm_double_inverse():
-    a = Algorithm.parse("U R")
+    a = Algorithm("U R")
     assert str(-(-a)) == "U R"
 
 def test_identity_and_inverse():
@@ -90,13 +90,13 @@ def test_invalid_algorithm_constructor():
         a = Algorithm(8936384)
 
 def test_mirror_involution():
-    alg = Algorithm.parse("R U r u M E S x y z")
+    alg = Algorithm("R U r u M E S x y z")
     assert alg.mirror().mirror() == alg
 
 def test_mirror_unchanged_moves():
-    alg = Algorithm.parse("x M")
+    alg = Algorithm("x M")
     assert alg.mirror() == alg
 
 def test_mirror_expected():
-    alg = Algorithm.parse("R L U D F B r l u d f b M E S x y z")
-    assert alg.mirror() == Algorithm.parse("L' R' U' D' F' B' l' r' u' d' f' b' M E' S' x y' z'")
+    alg = Algorithm("R L U D F B r l u d f b M E S x y z")
+    assert alg.mirror() == Algorithm("L' R' U' D' F' B' l' r' u' d' f' b' M E' S' x y' z'")

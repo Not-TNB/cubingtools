@@ -111,7 +111,7 @@ def test_algo_move():
 
 def test_algo_algorithm():
     c = CubeN()
-    alg = Algorithm.parse("R2 U2")
+    alg = Algorithm("R2 U2")
     before = deepcopy(c.state)
     c.algo(alg)
     assert c.state != before

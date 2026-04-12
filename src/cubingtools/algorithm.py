@@ -23,7 +23,7 @@ class Algorithm:
         Represents a sequence of moves (an algorithm) on the cube.
 
         :param moves: ``None`` (cast to empty algorithms), ``Move`` (cast to a single-move algorithm), \
-        ``list[Move]`` or ``str`` (parsed using ``Algorithm.parse()``)
+        ``list[Move]`` or ``str`` (parsed)
         """
         self._movs = None
 
@@ -35,7 +35,7 @@ class Algorithm:
                     raise TypeError('List must contain only Move objects')
                 self._movs = moves
             case str():
-                parsed = Algorithm.parse(moves)
+                parsed = self._parse(moves)
                 self._movs = parsed._movs.copy()
             case Move():
                 self._movs = [moves]
@@ -134,8 +134,7 @@ class Algorithm:
             raise InvalidAlgorithmError("Invalid token in algorithm string.")
         return _VALID_MOVE_REGEX.findall(algStr)
 
-    @staticmethod
-    def parse(algStr: str) -> Algorithm:
+    def _parse(self, algStr: str) -> Algorithm:
         """
         Parses a string representation of an algorithm into an Algorithm object.
 
@@ -144,7 +143,7 @@ class Algorithm:
         :rtype: Algorithm
         :returns: An `Algorithm` object corresponding to the input string.
 
-        >>> Algorithm.parse("U R2 F' 3Rw2 (R U')3 D") -> Algorithm(...)
+        >>> self._parse("U R2 F' 3Rw2 (R U')3 D") -> Algorithm(...)
         """
         tokens = Algorithm._tokenize(algStr)
         stk = []
@@ -180,6 +179,10 @@ class Algorithm:
         """Simplifies the algorithm in place."""
         self._movs = simplified(self)._movs.copy()
 
+    def reduce(self):
+        """Reduces the algorithm in place."""
+        self._movs = reduced(self)._movs.copy()
+
     def commutator(self, other: 'Algorithm') -> 'Algorithm':
         """
         Given algorithms ``A`` and ``B``, will return their commutator.
@@ -209,9 +212,11 @@ class Algorithm:
         """Returns the mirror of the algorithm, making right-handed algorithms left-handed and vice versa."""
         return Algorithm([m.mirror() for m in self._movs])
 
+########################################################################################################################
+
 def simplified(alg: Algorithm) -> Algorithm:
     """
-    Returns the naive simplification of a given algorithm.
+    Returns the naive (adjacent-canceller) simplification of a given algorithm.
 
     :param alg: The ``Algorithm`` to simplify.
 
@@ -221,10 +226,9 @@ def simplified(alg: Algorithm) -> Algorithm:
     >>> simplified(Algorithm("F U R' U' U R2")) -> Algorithm("F U R")
 
     .. Notes::
-    Note that for all ``a:Algorithm`` we have ``len(a) >= len(simplified(a))`` and ``a == simplified(a)``.
+    Note that for all ``A:Algorithm`` we have ``len(A) >= len(simplified(A))`` and ``A == simplified(A)``.
     """
-    stk: list[Move] = []
-
+    stk = []
     for move in alg:
         if stk:
             top = stk[-1]
@@ -235,3 +239,58 @@ def simplified(alg: Algorithm) -> Algorithm:
                 continue
         stk.append(move)
     return Algorithm(stk)
+
+########################################################################################################################
+
+_AXIS_GROUPS = {
+    'UD': ('U', 'D', 'u', 'd', 'E'),
+    'RL': ('R', 'L', 'r', 'l', 'M'),
+    'FB': ('F', 'B', 'f', 'b', 'S'),
+}
+
+def _commutes(a: Move, b: Move) -> bool:
+    """Returns True if moves ``a`` and ``b`` always commute."""
+    return any(a.mov in grp and b.mov in grp for grp in _AXIS_GROUPS.values())
+
+def reduced(alg: Algorithm) -> Algorithm:
+    """
+    Returns a reduced form of the algorithm by merging non-adjacent moves that
+    can be cancelled/combined.
+
+    :param alg: The ``Algorithm`` to reduce.
+
+    :rtype: Algorithm
+    :returns: The reduced algorithm.
+
+    .. Notes::
+    For all ``A:Algorithm`` we have ``len(reduce(A)) <= len(simplified(A))``
+    and ``reduce(A) == A``.
+
+    >>> reduce(Algorithm("R L R'"))   -> Algorithm("L")
+    >>> reduce(Algorithm("R U2 R'"))  -> Algorithm("R U2 R'")  # U2 does not commute with R
+    """
+    moves = list(alg)
+
+    changed = True
+    while changed:
+        changed = False
+        i = 0
+        while i < len(moves):
+            # slide j forward past moves that commute with moves[i] and are not the same base move
+            j = i + 1
+            while j < len(moves) and moves[j].mov != moves[i].mov and _commutes(moves[i], moves[j]):
+                j += 1
+            # only worthwhile if we slid past something; check if moves[i] and moves[j] can merge
+            if len(moves) > j > i + 1 and moves[j].mov == moves[i].mov and moves[j].width == moves[i].width:
+                total = (moves[i].mod + moves[j].mod) % 4
+                between = moves[i+1:j]
+                if total == 0:
+                    moves = moves[:i] + between + moves[j+1:]
+                else:
+                    merged = Move(moves[i].width, moves[i].mov, total)
+                    moves = moves[:i] + [merged] + between + moves[j+1:]
+                changed = True
+                continue
+            i += 1
+
+    return simplified(Algorithm(moves))

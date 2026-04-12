@@ -218,7 +218,7 @@ class CubeN:
         """
         match alg:
             case Move(): self._turn(alg)
-            case str() : self.algo(Algorithm.parse(alg))
+            case str() : self.algo(Algorithm(alg))
             case Algorithm():
                 for m in alg: self._turn(m)
             case _:

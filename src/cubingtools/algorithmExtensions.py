@@ -1,4 +1,4 @@
-"""Some functions related to algorithms which require an auxiliary cube in their implementation."""
+"""Some external/extension functions related to algorithms."""
 
 from .cube import *
 from .algorithm import *
