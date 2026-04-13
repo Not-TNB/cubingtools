@@ -71,19 +71,3 @@ def test_chained():
 def test_cascading():
     assert reduced(Algorithm("U R U' R'")) == Algorithm("U R U' R'") 
     assert reduced(Algorithm("U D U' D'")) == Algorithm()
-        
-# Invariants
-MODS = ["", "2", "'"]
-WIDTHS = ["", "2", "3", "4"]
-def _random_move():
-    face = random.choice("UFLBRD")
-    mod = random.choice(MODS)
-    width = random.choice(WIDTHS)
-    if width == "":
-        return face + mod
-    if width == "2":
-        return face + "w" + mod
-    return width + face + "w" + mod
-
-def _random_algorithm(length=25):
-    return Algorithm(" ".join(_random_move() for _ in range(length)))
