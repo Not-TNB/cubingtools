@@ -12,6 +12,54 @@ _MOVE_LEXER_REGEX = re.compile(r"\d*|[A-Za-z]|w?|[2']?")
 
 ########################################################################################################################
 
+_MIRROR_MAP = {
+    _BaseMove.RBig: _BaseMove.LBig,
+    _BaseMove.LBig: _BaseMove.RBig,
+
+    _BaseMove.RTurn: _BaseMove.LTurn,
+    _BaseMove.LTurn: _BaseMove.RTurn,
+
+    _BaseMove.FBig: _BaseMove.FBig,
+    _BaseMove.BBig: _BaseMove.BBig,
+    _BaseMove.UBig: _BaseMove.UBig,
+    _BaseMove.DBig: _BaseMove.DBig,
+
+    _BaseMove.FTurn: _BaseMove.FTurn,
+    _BaseMove.BTurn: _BaseMove.BTurn,
+    _BaseMove.UTurn: _BaseMove.UTurn,
+    _BaseMove.DTurn: _BaseMove.DTurn,
+
+    _BaseMove.MSlice: _BaseMove.MSlice,
+    _BaseMove.ESlice: _BaseMove.ESlice,
+    _BaseMove.SSlice: _BaseMove.SSlice,
+
+    _BaseMove.XRot: _BaseMove.XRot,
+    _BaseMove.YRot: _BaseMove.YRot,
+    _BaseMove.ZRot: _BaseMove.ZRot,
+}
+
+_MIRROR_FLIP = frozenset({
+    _BaseMove.RBig,
+    _BaseMove.LBig,
+    _BaseMove.FBig,
+    _BaseMove.BBig,
+    _BaseMove.UBig,
+    _BaseMove.DBig,
+
+    _BaseMove.RTurn,
+    _BaseMove.LTurn,
+    _BaseMove.FTurn,
+    _BaseMove.BTurn,
+    _BaseMove.UTurn,
+    _BaseMove.DTurn,
+
+    _BaseMove.XRot,
+    _BaseMove.YRot,
+    _BaseMove.ZRot,
+})
+
+########################################################################################################################
+
 class Move:
     def __init__(self,
                  width: int = 1,
@@ -24,20 +72,28 @@ class Move:
         :param mov: The base move notation (e.g., 'U', 'R', 'F', 'D', 'L', 'B', 'x', 'y', 'z', etc.).
         :param mod: The modifier for the move ('1' for clockwise, "'" for counter-clockwise, '2' for 180 degrees).
         """
-        if width <= 0: raise InvalidMoveError(self)
+        if width <= 0:
+            raise InvalidMoveError(f"Invalid width: {width}")
 
         self.width = width
 
         match mov:
-            case _BaseMove() : self.mov = mov
-            case str()       : self.mov = _BaseMove(mov)
-            case _: raise InvalidMoveError(self)
+            case _BaseMove():
+                self.mov = mov
+            case str():
+                self.mov = _BaseMove(mov)
+            case _:
+                raise InvalidMoveError(f"Invalid move: {mov}")
 
         match mod:
-            case _Mod() : self.mod = mod
-            case int()  : self.mod = _Mod(mod)
-            case str()  : self.mod = _Mod.parse(mod)
-            case _: raise InvalidMoveError(self)
+            case _Mod():
+                self.mod = mod
+            case int():
+                self.mod = _Mod(mod)
+            case str():
+                self.mod = _Mod.parse(mod)
+            case _:
+                raise InvalidMoveError(f"Invalid mod: {mod}")
 
     def __repr__(self):
         return f'Move({self.width}, {self.mov}, {self.mod})'
@@ -51,7 +107,7 @@ class Move:
         lay = str(self.width) if self.width > 2 else ''
         w = 'w' if self.width >= 2 else ''
         modStr = str(self.mod) if self.mod != _Mod.CW else ''
-        return lay + self.mov + w + modStr
+        return lay + str(self.mov) + w + modStr
 
     @staticmethod
     def parse(tok: str) -> 'Move | None':
@@ -78,7 +134,8 @@ class Move:
             try: return _Mod.parse(m)
             except ValueError: throw()
 
-        guardFace = lambda x: throw() if x not in FACES else None
+        def guardFace(x):
+            if _BaseMove(x) not in FACES: throw()
 
         tokens = [t for t in re.findall(_MOVE_LEXER_REGEX, tok) if t != '']
 
@@ -86,26 +143,32 @@ class Move:
             case [t]:
                 mov = parseMov(t)
                 return Move(1, mov, 1)
+
             case [mov, 'w']:
                 guardFace(mov)
                 return Move(2, mov, 1)
+
             case [mov, mod]:
                 mov = parseMov(mov)
                 mod = parseMod(mod)
                 return Move(1, mov, mod)
+
             case [mov, 'w', mod]:
                 guardFace(mov)
                 mod = parseMod(mod)
-                return Move(2, mov, mod)  # ex. Rw === 2Rw
+                return Move(2, mov, mod)
+
             case [width, mov, 'w']:
                 width = parseWidth(width)
                 guardFace(mov)
                 return Move(width, mov, 1)
+
             case [width, mov, 'w', mod]:
                 width = parseWidth(width)
-                mod = parseMod(mod)
                 guardFace(mov)
+                mod = parseMod(mod)
                 return Move(width, mov, mod)
+
             case _:
                 throw()
                 return None
@@ -113,25 +176,10 @@ class Move:
     def mirror(self):
         """Returns the mirror of the move."""
 
-        def mir(new): return -Move(self.width, new, self.mod)
+        new_mov = _MIRROR_MAP.get(self.mov)
+        if new_mov is None:
+            raise InvalidMoveError(f"Invalid move to mirror: {self.mov}")
 
-        match self.mov:
-            case 'x' : return self
-            case 'y' : return -self
-            case 'z' : return -self
-            case 'u' : return -self
-            case 'f' : return -self
-            case 'r' : return mir(_BaseMove.LBig)
-            case 'b' : return -self
-            case 'l' : return mir(_BaseMove.RBig)
-            case 'd' : return -self
-            case 'U' : return -self
-            case 'F' : return -self
-            case 'R' : return mir(_BaseMove.LTurn)
-            case 'B' : return -self
-            case 'L' : return mir(_BaseMove.RTurn)
-            case 'D' : return -self
-            case 'M' : return self
-            case 'E' : return -self
-            case 'S' : return -self
-            case _   : raise InvalidMoveError(f"Invalid move to mirror: {self.mov}")
+        new_mod = -self.mod if self.mov in _MIRROR_FLIP else self.mod
+
+        return Move(self.width, new_mov, new_mod)
