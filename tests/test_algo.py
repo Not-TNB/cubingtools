@@ -100,3 +100,34 @@ def test_mirror_unchanged_moves():
 def test_mirror_expected():
     alg = Algorithm("R L U D F B r l u d f b M E S x y z")
     assert alg.mirror() == Algorithm("L' R' U' D' F' B' l' r' u' d' f' b' M E' S' x y' z'")
+
+def test_degree_empty():
+    assert Algorithm().degree == 2
+    assert Algorithm("").degree == 2
+
+def test_degree_face_turns():
+    assert Algorithm("R U F").degree == 2
+    assert Algorithm("R2").degree == 2
+
+def test_degree_rotations():
+    assert Algorithm("x y z").degree == 2
+
+def test_degree_slices():
+    assert Algorithm("M").degree == 3
+    assert Algorithm("E").degree == 3
+    assert Algorithm("S").degree == 3
+
+def test_degree_wide_moves():
+    assert Algorithm("u").degree == 3
+    assert Algorithm("d f l r b").degree == 3
+
+def test_degree_wide_with_explicit_width():
+    assert Algorithm("3Rw").degree == 4
+    assert Algorithm("10Fw").degree == 11
+
+def test_degree_mixed():
+    assert Algorithm("R M U").degree == 3
+    assert Algorithm("M 3Rw").degree == 4
+
+def test_degree_takes_max():
+    assert Algorithm("3Rw 5Uw").degree == 6

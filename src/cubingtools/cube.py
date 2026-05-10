@@ -4,21 +4,22 @@ Contains the `CubeN` class working with NxN Rubik's cubes for N>=2
 
 from .algorithm import Algorithm
 from .move import Move
-from ._enumHelpers import _CubeFace, FACES, MODS
+from ._enumHelpers import _BaseMove, _FACES, _MODS, _FACES_LIST
 import random
 from copy import deepcopy
 
 ########################################################################################################################
 
-def _generateScrambleMoveList(n: int):
-    match n:
-        case 2: return deepcopy(FACES[:3])
-        case 3: return deepcopy(FACES)
-        case _:
-            result = deepcopy(FACES)
-            for i in range(2, 1 + n // 2):
-                result += [str(i) + m + 'w' for m in FACES]
-            return result
+def _generateScrambleMoveList(n: int) -> list[Move]:
+    face_moves = [Move(1, f, 1) for f in _FACES]
+    if n == 2:
+        return face_moves[:3]
+    wide_moves = [
+        Move(w, f, 1)
+        for w in range(2, 1 + n // 2)
+        for f in _FACES
+    ]
+    return face_moves + wide_moves
 
 ########################################################################################################################
 
@@ -47,17 +48,17 @@ class CubeN:
         def genFaceMat(col: str) -> list[list[str]]:
             return [[col for _ in range(self.size)] for _ in range(self.size)]
 
-        stateKs = FACES
+        stateKs = _FACES_LIST
         stateVs = list(map(genFaceMat, self.cols))
         self.state = dict(zip(stateKs, deepcopy(stateVs)))
         self.solved = deepcopy(self.state)
 
-        for face in _CubeFace:
+        for face in _FACES:
             def getter(s, f=face):
                 return s.state[f]
             def setter(s, mat, f=face):
                 s.state[f] = mat
-            setattr(CubeN, face.name, property(getter, setter))
+            setattr(CubeN, face.value, property(getter, setter))
 
     def showFace(self, face: str) -> str:
         """
@@ -68,7 +69,7 @@ class CubeN:
         :rtype: str
         :returns: A string representation of the specified face.
         """
-        f = self.state[_CubeFace(face)]
+        f = self.state[_BaseMove(face)]
         bordr = "──" * (self.size - 1)
         out = f'┌{bordr}───┐\n'
         out += '\n'.join([f'│ {" ".join(row)} │' for row in f])
@@ -105,19 +106,19 @@ class CubeN:
         """Print's a net of the cube's current state."""
         return self.__repr__()
 
-    def _rtFC(self, face: str | _CubeFace) -> list[list[str]]:
+    def _rtFC(self, face: str | _BaseMove) -> list[list[str]]:
         """Rotates a face (NOT A LAYER) clockwise."""
-        f = self.state[_CubeFace(face)]
+        f = self.state[_BaseMove(face)]
         return [list(row) for row in zip(*f[::-1])]
 
-    def _rtFA(self, face: str | _CubeFace) -> list[list[str]]:
+    def _rtFA(self, face: str | _BaseMove) -> list[list[str]]:
         """Rotates a face (NOT A LAYER) anticlockwise."""
-        f = self.state[_CubeFace(face)]
+        f = self.state[_BaseMove(face)]
         return list(list(x) for x in zip(*f))[::-1]
 
-    def _rtF2(self, face: str | _CubeFace) -> list[list[str]]:
+    def _rtF2(self, face: str | _BaseMove) -> list[list[str]]:
         """Rotates a face (NOT A LAYER) by 180 degrees."""
-        f = self.state[_CubeFace(face)]
+        f = self.state[_BaseMove(face)]
         return [row[::-1] for row in f[::-1]]
 
     def _uTurn(self, n: int = 1) -> None:
@@ -256,13 +257,11 @@ class CubeN:
         self.state = deepcopy(self.solved)
 
     def _randMove(self) -> Move:
-        """Returns a random scramble move"""
         mov = random.choice(self._ms)
-        mod = random.choice(MODS)
-        return Move.parse(mov + str(mod))
+        return Move(mov.width, mov.mov, random.choice(_MODS))
 
     def __hash__(self) -> int:
-        return hash(''.join([''.join(''.join(r) for r in self.state[f]) for f in FACES]))
+        return hash(''.join([''.join(''.join(r) for r in self.state[f]) for f in _FACES_LIST]))
 
     def scramble(self, m: int | None = None) -> Algorithm:
         """

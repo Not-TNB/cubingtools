@@ -44,8 +44,7 @@ class Algorithm:
 
         # for what N can this be executed on an NxN cube?
         self.degree = 2
-        if self._movs:
-            self.degree = max([m.width for m in self._movs]) + 1
+        if self._movs: self.degree = max(m.degree for m in self._movs)
 
     def __eq__(self, other: 'Algorithm') -> bool:
         """
@@ -263,11 +262,11 @@ def reduced(alg: Algorithm) -> Algorithm:
     :returns: The reduced algorithm.
 
     .. Notes::
-    For all ``A:Algorithm`` we have ``len(reduce(A)) <= len(simplified(A))``
-    and ``reduce(A) == A``.
+    For all ``A:Algorithm`` we have ``len(reduced(A)) <= len(simplified(A))``
+    and ``reduced(A) == A``.
 
-    >>> reduce(Algorithm("R L R'"))   -> Algorithm("L")
-    >>> reduce(Algorithm("R U2 R'"))  -> Algorithm("R U2 R'")  # U2 does not commute with R
+    >>> reduced(Algorithm("R L R'"))   -> Algorithm("L")
+    >>> reduced(Algorithm("R U2 R'"))  -> Algorithm("R U2 R'")  # U2 does not commute with R
     """
     moves = list(alg)
 

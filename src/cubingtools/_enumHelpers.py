@@ -1,18 +1,6 @@
-"""Contains some enums used in the move.py, algorithm.py and cube.py methods/classes."""
+"""DO NOT IMPORT. Contains some enums used in the move.py, algorithm.py and cube.py methods/classes."""
 
 from enum import StrEnum, IntEnum
-
-class _CubeFace(StrEnum):
-    U = 'U'
-    F = 'F'
-    R = 'R'
-    B = 'B'
-    L = 'L'
-    D = 'D'
-
-FACES = list(_CubeFace)
-
-########################################################################################################################
 
 class _Mod(IntEnum):
     CW = 1
@@ -35,18 +23,18 @@ class _Mod(IntEnum):
         return self._matchup(_Mod.CCW, _Mod.HALF, _Mod.CW)
 
     @classmethod
-    def parse(cls, s) -> '_Mod':
+    def parse(_BaseMove, s) -> '_Mod':
         s = str(s)
         if s in ('', '1'):
-            return cls.CW
+            return _BaseMove.CW
         elif s == '2':
-            return cls.HALF
+            return _BaseMove.HALF
         elif s in ("'", '-1'):
-            return cls.CCW
+            return _BaseMove.CCW
         else:
             raise ValueError(f"Invalid modifier string: {s}")
 
-MODS = list(_Mod)
+_MODS = list(_Mod)
 
 ########################################################################################################################
 
@@ -70,4 +58,8 @@ class _BaseMove(StrEnum):
     ESlice = 'E'
     SSlice = 'S'
 
-ALL_MOVS = list(_BaseMove)
+_SLICES = frozenset({_BaseMove.MSlice, _BaseMove.ESlice, _BaseMove.SSlice})
+_ROTS = frozenset({_BaseMove.XRot, _BaseMove.YRot, _BaseMove.ZRot})
+_FACES = frozenset({_BaseMove.UTurn, _BaseMove.FTurn, _BaseMove.RTurn, _BaseMove.BTurn, _BaseMove.LTurn, _BaseMove.DTurn})
+_FACES_LIST = [_BaseMove.UTurn, _BaseMove.FTurn, _BaseMove.RTurn, _BaseMove.BTurn, _BaseMove.LTurn, _BaseMove.DTurn] # UFRBLD
+_WIDES = frozenset({_BaseMove.UBig, _BaseMove.FBig, _BaseMove.RBig, _BaseMove.BBig, _BaseMove.LBig, _BaseMove.DBig})

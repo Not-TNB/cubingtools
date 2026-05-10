@@ -3,7 +3,7 @@ Classes and methods working with the internal representation of cube moves.
 """
 
 from .error import InvalidMoveError
-from ._enumHelpers import _Mod, _BaseMove, FACES
+from ._enumHelpers import _Mod, _BaseMove, _FACES
 import re
 
 ########################################################################################################################
@@ -53,9 +53,18 @@ _MIRROR_FLIP = frozenset({
     _BaseMove.UTurn,
     _BaseMove.DTurn,
 
-    _BaseMove.XRot,
     _BaseMove.YRot,
     _BaseMove.ZRot,
+
+    _BaseMove.ESlice,
+    _BaseMove.SSlice,
+})
+
+########################################################################################################################
+
+_DEG_3_MOVES = frozenset({
+    _BaseMove.MSlice, _BaseMove.ESlice, _BaseMove.SSlice,
+    _BaseMove.UBig, _BaseMove.DBig, _BaseMove.LBig, _BaseMove.RBig, _BaseMove.FBig, _BaseMove.BBig,
 })
 
 ########################################################################################################################
@@ -94,6 +103,9 @@ class Move:
                 self.mod = _Mod.parse(mod)
             case _:
                 raise InvalidMoveError(f"Invalid mod: {mod}")
+
+        self.degree = self.width+1
+        if mov in _DEG_3_MOVES: self.degree = max(self.degree, 3)
 
     def __repr__(self):
         return f'Move({self.width}, {self.mov}, {self.mod})'
@@ -135,7 +147,10 @@ class Move:
             except ValueError: throw()
 
         def guardFace(x):
-            if _BaseMove(x) not in FACES: throw()
+            try:
+                if _BaseMove(x) not in _FACES: throw()
+            except ValueError:
+                throw()
 
         tokens = [t for t in re.findall(_MOVE_LEXER_REGEX, tok) if t != '']
 

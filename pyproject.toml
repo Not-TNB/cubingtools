@@ -19,6 +19,7 @@ license = "MIT"
 license-files = ["LICEN[CS]E*"]
 dependencies = [
     "coverage>=7.13.4",
+    "matplotlib>=3.10.9",
     "pytest>=9.0.2",
 ]
 

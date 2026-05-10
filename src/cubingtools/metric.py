@@ -1,6 +1,7 @@
 """Contains the Metric class and the size method to compute the size of an algorithm wrt various metrics."""
 
 from enum import StrEnum
+from ._enumHelpers import _BaseMove, _ROTS, _FACES, _WIDES, _SLICES
 from .algorithm import *
 
 class Metric(StrEnum):
@@ -18,11 +19,6 @@ class Metric(StrEnum):
     ETM  = "ETM"   # Execution Turn Metric
     STM  = "STM"   # Slice Turn Metric
     OBTM = "OBTM"  # Outer Block Turn Metric
-
-_ROTATIONS = frozenset('xyz')
-_SLICES = frozenset('MES')
-_FACES = frozenset('UDFBLR')
-_WIDES = frozenset('udfblr')
 
 def size(alg: Algorithm, metric: Metric | str = Metric.OBTM) -> int:
     """
@@ -46,7 +42,7 @@ def size(alg: Algorithm, metric: Metric | str = Metric.OBTM) -> int:
     for move in alg:
         b        = str(move.mov)
         is_half  = move.mod == 2
-        is_rot   = b in _ROTATIONS
+        is_rot   = b in _ROTS
         is_slice = b in _SLICES
         is_wide  = b in _WIDES or (b in _FACES and move.width >= 2)
 
